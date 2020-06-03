@@ -14,7 +14,7 @@
       </div>
       <br>
 
-      <el-card style="max-width:813px;" shadow="always">
+      <el-card style="max-width:1033px;" shadow="always">
     <el-table
       v-loading="listLoading"
       :data="data.worktimes"
@@ -59,12 +59,22 @@
             <span v-else style="color: black">{{ scope.row.friday }}</span>
         </template>
       </el-table-column>
-        <el-table-column label="来週作業予定" width="110" align="center">
-            <template slot-scope="scope">
-                <span v-if="scope.row.nextWeek == '有'" style="color:black">有</span>
-                <span v-else style="color:red">無</span>
-            </template>
-        </el-table-column>
+      <el-table-column :label="data.dates.saturday" width="110" align="center" :render-header="renderheader">
+        <template slot-scope="scope">
+          <span>{{ scope.row.saturday }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column :label="data.dates.sunday" width="110" align="center" :render-header="renderheader">
+        <template slot-scope="scope">
+          <span>{{ scope.row.sunday }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="来週作業予定" width="110" align="center">
+        <template slot-scope="scope">
+          <span v-if="scope.row.nextWeek == '有'" style="color:black">有</span>
+          <span v-else style="color:red">無</span>
+        </template>
+      </el-table-column>
     </el-table>
       <br>
       <el-button class="btn-add" :loading="downloadLoading" @click="download" type="primary" :disabled="disabled">週報出力

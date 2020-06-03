@@ -18,10 +18,11 @@
                     :value="item.id"
                 ></el-option>
             </el-select>
-            <el-button :loading="loading" @click="reload" type="primary" size="medium" style="margin-left: 12px;" :disabled="disabled">検索
+            <el-button :loading="loading" @click="reload" type="primary" size="medium" style="margin-left: 12px;" :disabled="disabled">
+                検索
             </el-button>
-            <el-button @click="drawer = true" type="primary" size="medium" style="margin-left: 12px;">
-                Show Detail
+            <el-button @click="drawer = true" type="primary" size="medium" style="margin-left: 12px;" :disabled="dataListDisabled">
+                データ表示
             </el-button>
         </div>
         <br>
@@ -31,9 +32,11 @@
         <Chart ref="chart" style="height:0px;"></Chart>
         <el-drawer
             title="なし"
+            size="50%"
             :visible.sync="drawer"
             :direction="direction"
-            :with-header="false">
+            :with-header="false"
+            style="overflow-x: auto; overflow-y: auto;">
             <div class="app-container">
                 <el-table
                     :data="tableData"
@@ -47,6 +50,7 @@
                     :cell-style="{padding:'0px'}"
                 >
                     <el-table-column
+                        width="200"
                         v-for="col in cols"
                         :prop="col.prop" :label="col.label" >
                     </el-table-column>
@@ -72,9 +76,11 @@
           {id: 'tianyulin', name: '田語林'},
           {id: 'lornwolf', name: '宋宗正'},
           {id: 'chenqu', name: '陳曲'},
-          {id: 'songtao', name: '宋涛'},
+          {id: 'liulingyun', name: '宋涛'},
+          {id: 'songtao', name: '劉凌雲'},
         ],
         disabled: false,
+        dataListDisabled: true,
         loading: false,
         drawer: false,
         direction: 'rtl',
@@ -91,6 +97,7 @@
     methods: {
       async reload() {
         this.loading = true;
+        this.dataListDisabled = true;
         await this.$refs.chart.reload(this.month, this.user);
         if (this.user) {
           let username;
@@ -109,6 +116,7 @@
         this.tableData = this.$refs.chart.getTableData();
         this.cols = this.$refs.chart.getCols();
         this.loading = false;
+        this.dataListDisabled = false;
       },
       getRowHeaderClass({ row, column, rowIndex, columnIndex }) {
         if (rowIndex === 0) {
