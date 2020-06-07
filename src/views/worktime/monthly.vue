@@ -62,6 +62,8 @@
 
 <script>
   import Chart from '@/components/Charts/MixChart'
+  import { getUsers } from '@/api/worktimes'
+
   export default {
     name: 'MixChart',
     components: { Chart },
@@ -69,16 +71,7 @@
       return {
         month: '',
         user: '',
-        users: [
-          {id: 'fengkai', name: '馮凱'},
-          {id: 'zanghongwen', name: '臧宏文'},
-          {id: 'lihuimin', name: '李慧敏'},
-          {id: 'tianyulin', name: '田語林'},
-          {id: 'lornwolf', name: '宋宗正'},
-          {id: 'chenqu', name: '陳曲'},
-          {id: 'liulingyun', name: '宋涛'},
-          {id: 'songtao', name: '劉凌雲'},
-        ],
+        users: [],
         disabled: false,
         dataListDisabled: true,
         loading: false,
@@ -93,6 +86,7 @@
       let year = date.getFullYear();
       let month = date.getMonth() + 1;
       this.month = year + "-" + (month < 10 ? "0" + month : month);
+      this.getNimbusUsers();
     },
     methods: {
       async reload() {
@@ -117,6 +111,11 @@
         this.cols = this.$refs.chart.getCols();
         this.loading = false;
         this.dataListDisabled = false;
+      },
+      getNimbusUsers() {
+        getUsers().then(response => {
+          this.users = response.data;
+        });
       },
       getRowHeaderClass({ row, column, rowIndex, columnIndex }) {
         if (rowIndex === 0) {

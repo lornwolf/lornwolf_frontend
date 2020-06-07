@@ -75,22 +75,14 @@
 </template>
 
 <script>
-import { checkWorkTimes } from '@/api/worktimes'
+import { checkWorkTimes, getUsers } from '@/api/worktimes'
 
 export default {
   data() {
     return {
       month: '',
       user: '',
-      users: [
-        {id: 'fengkai', name: '馮凱'},
-        {id: 'zanghongwen', name: '臧宏文'},
-        {id: 'lihuimin', name: '李慧敏'},
-        {id: 'tianyulin', name: '田語林'},
-        {id: 'lornwolf', name: '宋宗正'},
-        {id: 'chenqu', name: '陳曲'},
-        {id: 'songtao', name: '宋涛'},
-      ],
+      users: [],
       list: null,
       listLoading: true,
       loading: false,
@@ -98,6 +90,7 @@ export default {
     }
   },
   created() {
+    this.getNimbusUsers();
     this.fetchData();
   },
   methods: {
@@ -120,6 +113,11 @@ export default {
         this.loading = false
         this.disabled = false;
       })
+    },
+    getNimbusUsers() {
+      getUsers().then(response => {
+        this.users = response.data;
+      });
     },
     getRowHeaderClass({ row, column, rowIndex, columnIndex }) {
       if (rowIndex === 0) {

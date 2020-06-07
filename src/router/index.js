@@ -83,6 +83,22 @@ export const constantRoutes = [
     ]
   },
 
+    {
+        path: '/tools',
+        component: Layout,
+        redirect: '/tools/dictionary',
+        name: 'Tools',
+        meta: { title: 'ツール', icon: 'example' },
+        children: [
+            {
+                path: 'dictionary',
+                name: 'dictionary',
+                component: () => import('@/views/dictionary/index'),
+                meta: { title: '辞書', icon: 'table' }
+            }
+        ]
+    },
+
   // 404 page must be placed at the end !!!
   { path: '*', redirect: '/404', hidden: true }
 ]

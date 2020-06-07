@@ -20,3 +20,10 @@ export function checkWorkTimes(month, user) {
         method: 'get'
     })
 }
+
+export function getUsers() {
+    return request({
+        url: '/getUsers',
+        method: 'get'
+    })
+}
