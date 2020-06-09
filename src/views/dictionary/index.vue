@@ -6,9 +6,10 @@
                 v-model="input"
                 size="100"
                 style="width:500px;"
+                @keypress.enter.native="search()"
                 clearable>
             </el-input>
-            <el-select filterable
+            <el-select
                 v-model="mode"
                 clearable
                 class="item-width">
@@ -24,7 +25,7 @@
             </el-button>
         </div>
         <br>
-        <el-tabs type="border-card" v-model="activeTab">
+        <el-tabs type="border-card" v-model="activeTab" v-if="visible">
             <el-tab-pane v-for = "item in result" :label="item.text" :name="item.name">
                 <dl v-html="item.content">
                     {{item.content}}
@@ -35,7 +36,7 @@
 </template>
 
 <script>
-import { selectJapanese, selectByLike, selectByHana, selectExamplesByLikeJp, selectExamplesByLikeCn, selectByCn } from '@/api/tools'
+import { selectJapanese, selectByLike, selectByHana, selectExamplesByLikeJp, selectExamplesByLikeCn, selectByCn, googleImageSearch } from '@/api/tools'
 
 export default {
     data() {
@@ -54,7 +55,8 @@ export default {
             ],
             activeTab: '',
             loading: false,
-            disabled: false
+            disabled: false,
+            visible: false
         }
     },
     created() {
@@ -66,7 +68,8 @@ export default {
                 return;
             }
             this.result = [];
-            this.loading = true
+            this.loading = true;
+            this.visible = false;
             if (this.mode == '1' || this.mode == '2' || this.mode == '3' || this.mode == '6') {
                 let runMethod = null;
                 if (this.mode == '1') {
@@ -87,7 +90,11 @@ export default {
                         }
                         if (data[i].translations && data[i].translations.length > 0) {
                             for (let j = 0; j < data[i].translations.length; j++) {
-                                con += '<span style="line-height: 35px">' + (j + 1) + '. ' + data[i].translations[j].cn + '（<span style="color:limegreen">' + data[i].translations[j].jp + '</span>）</span><br>'
+                                con += '<span style="line-height: 35px">' + (j + 1) + '. ' + data[i].translations[j].cn;
+                                if (data[i].translations[j].jp) {
+                                    con += '<span style="color:limegreen">（' + data[i].translations[j].jp + '）</span></span>';
+                                }
+                                con += '<br>';
                                 if (data[i].translations[j].examples && data[i].translations[j].examples.length > 0) {
                                     for (let k = 0; k < data[i].translations[j].examples.length; k++) {
                                         con += '<span style="line-height: 35px">&nbsp;&nbsp;&nbsp;&nbsp;' + data[i].translations[j].examples[k].jp + '&nbsp;&nbsp;<span style="color:royalblue">' + data[i].translations[j].examples[k].cn + '</span></span><br>'
@@ -104,6 +111,7 @@ export default {
                         }
                     }
                     this.loading = false;
+                    this.visible = true;
                     this.activeTab = this.result[0].name;
                 })
             }
@@ -111,6 +119,8 @@ export default {
                 selectExamplesByLikeJp(this.input).then(response => {
                     let data = response;
                     if (!data || data.length < 1) {
+                        this.loading = false;
+                        this.visible = false;
                         return;
                     }
                     let con = '';
@@ -122,13 +132,17 @@ export default {
                         name: 'result',
                         content: con
                     }
-                    this.loading = false
+                    this.loading = false;
+                    this.visible = true;
+                    this.activeTab = this.result[0].name;
                 })
             }
             else if (this.mode == '5') {
                 selectExamplesByLikeCn(this.input).then(response => {
                     let data = response;
                     if (!data || data.length < 1) {
+                        this.loading = false;
+                        this.visible = false;
                         return;
                     }
                     let con = '';
@@ -140,7 +154,9 @@ export default {
                         name: 'result',
                         content: con
                     }
-                    this.loading = false
+                    this.loading = false;
+                    this.visible = true;
+                    this.activeTab = this.result[0].name;
                 })
             }
         }
