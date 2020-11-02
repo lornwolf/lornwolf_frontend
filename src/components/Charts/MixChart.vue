@@ -99,7 +99,7 @@
             right: '5%',
             borderWidth: 0,
             top: 150,
-            bottom: 30, // 去掉了缩放条，底部空间从95改成15。
+            bottom: 95,
             textStyle: {
               color: '#fff'
             }
@@ -155,7 +155,6 @@
               show: false
             }
           }],
-          /* 去掉缩放功能。
           dataZoom: [{
             show: true,
             height: 30,
@@ -174,7 +173,7 @@
             height: 15,
             start: 1,
             end: 35
-          }],*/
+          }],
           series: this.chartData.bars
         }, true)
       }
