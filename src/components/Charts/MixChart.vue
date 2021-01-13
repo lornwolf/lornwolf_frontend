@@ -133,7 +133,7 @@
               interval: 0
             },
             data: this.chartData.series,
-            max: 6
+            max: 15
           }],
           yAxis: [{
             type: 'value',
