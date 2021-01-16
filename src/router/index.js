@@ -3,7 +3,6 @@ import Router from 'vue-router'
 
 Vue.use(Router)
 
-/* Layout */
 import Layout from '@/layout'
 
 /**
@@ -31,57 +30,57 @@ import Layout from '@/layout'
  * all roles can be accessed
  */
 export const constantRoutes = [
-  {
-    path: '/login',
-    component: () => import('@/views/login/index'),
-    hidden: true
-  },
+    {
+        path: '/login',
+        component: () => import('@/views/login/index'),
+        hidden: true
+    },
 
-  {
-    path: '/404',
-    component: () => import('@/views/404'),
-    hidden: true
-  },
+    {
+        path: '/404',
+        component: () => import('@/views/404'),
+        hidden: true
+    },
 
-  {
-    path: '/',
-    component: Layout,
-    redirect: '/dashboard',
-    children: [{
-      path: 'dashboard',
-      name: 'Dashboard',
-      component: () => import('@/views/dashboard/index'),
-      meta: { title: 'Dashboard', icon: 'dashboard' }
-    }]
-  },
+    {
+        path: '/',
+        component: Layout,
+        redirect: '/dashboard',
+        children: [{
+            path: 'dashboard',
+            name: 'Dashboard',
+            component: () => import('@/views/dashboard/index'),
+            meta: { title: 'Dashboard', icon: 'dashboard' }
+        }]
+    },
 
-  {
-    path: '/nimbus',
-    component: Layout,
-    redirect: '/nimbus/worktime_weekly',
-    name: 'Nimbus',
-    meta: { title: 'Nimbus', icon: 'example' },
-    children: [
-        {
-            path: 'worktime_weekly',
-            name: 'worktime_weekly',
-            component: () => import('@/views/worktime/weekly'),
-            meta: { title: '工数統計（週）', icon: 'table' }
-        },
-        {
-            path: 'worktime_monthly',
-            name: 'worktime_monthly',
-            component: () => import('@/views/worktime/monthly'),
-            meta: { title: '工数統計（月）', icon: 'table' }
-        },
-        {
-            path: 'worktime_check',
-            name: 'worktime_check',
-            component: () => import('@/views/worktime/check'),
-            meta: { title: 'エピックチェック', icon: 'table' }
-        }
-    ]
-  },
+    {
+        path: '/nimbus',
+        component: Layout,
+        redirect: '/nimbus/worktime_weekly',
+        name: 'Nimbus',
+        meta: { title: 'Nimbus', icon: 'example' },
+        children: [
+            {
+                path: 'worktime_weekly',
+                name: 'worktime_weekly',
+                component: () => import('@/views/worktime/weekly'),
+                meta: { title: '工数統計（週）', icon: 'table' }
+            },
+            {
+                path: 'worktime_monthly',
+                name: 'worktime_monthly',
+                component: () => import('@/views/worktime/monthly'),
+                meta: { title: '工数統計（月）', icon: 'table' }
+            },
+            {
+                path: 'worktime_check',
+                name: 'worktime_check',
+                component: () => import('@/views/worktime/check'),
+                meta: { title: 'エピックチェック', icon: 'table' }
+            }
+        ]
+    },
 
     {
         path: '/tools',
@@ -95,26 +94,32 @@ export const constantRoutes = [
                 name: 'dictionary',
                 component: () => import('@/views/dictionary/index'),
                 meta: { title: '辞書', icon: 'table' }
+            },
+            {
+                path: 'books',
+                name: 'books',
+                component: () => import('@/views/dictionary/books'),
+                meta: { title: '生詞本', icon: 'table' }
             }
         ]
     },
 
-  // 404 page must be placed at the end !!!
-  { path: '*', redirect: '/404', hidden: true }
+    // 404 page must be placed at the end !!!
+    { path: '*', redirect: '/404', hidden: true }
 ]
 
 const createRouter = () => new Router({
-  // mode: 'history', // require service support
-  scrollBehavior: () => ({ y: 0 }),
-  routes: constantRoutes
+    // mode: 'history', // require service support
+    scrollBehavior: () => ({ y: 0 }),
+    routes: constantRoutes
 })
 
 const router = createRouter()
 
 // Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
 export function resetRouter() {
-  const newRouter = createRouter()
-  router.matcher = newRouter.matcher // reset router
+    const newRouter = createRouter()
+    router.matcher = newRouter.matcher // reset router
 }
 
 export default router
