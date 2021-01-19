@@ -1,13 +1,14 @@
 <template>
     <v-app>
-    <v-card>
+    <v-card @mouseup="cancelMove();" @mousemove="moveWord($event);" id="bookApp">
         <!--
         <v-card-title class="indigo white--text headline">
             我的生詞本
         </v-card-title>
         -->
+        <v-divider></v-divider>
         <v-row class="pa-4" justify="space-between">
-            <v-col cols="5">
+            <v-col cols="3">
                 <v-treeview
                     :active.sync="active"
                     :items="items"
@@ -19,9 +20,12 @@
                     transition
                 >
                     <template v-slot:prepend="{item}" >
+                        <div @mouseleave="mouseleave(item.id, $event)" @mouseenter="mouseenter(item.id, $event)" @mouseup="mouseup(item.id, $event);" :id="'book_' + item.id" class="books">
                             <v-icon v-if="!item.children">
                                 mdi-book-open-page-variant
                             </v-icon>
+                            {{item.label}}
+                        </div>
                     </template>
                 </v-treeview>
             </v-col>
@@ -33,30 +37,59 @@
                     <div v-if="!selected" class="title grey--text text--lighten-1 font-weight-light" style="align-self: center;">
                         Select a Book
                     </div>
-                    <v-card v-else :key="selected.id" width="100%">
-                        <v-simple-table>
-                            <template v-slot:default>
-                                <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>単詞</th>
-                                    <th>読音</th>
-                                    <th>意味</th>
-                                </tr>
-                                </thead>
-                                <tr v-for="item in words" :key="item.id">
-                                    <td class="text-left">{{ item.id }}</td>
-                                    <td class="text-left">{{ item.japanese.japanese }}</td>
-                                    <td class="text-left">{{ item.japanese.hiragana }}</td>
-                                    <td class="text-left">{{ item.comment }}</td>
-                                </tr>
-                            </template>
-                        </v-simple-table>
+                    <v-card elevation="2" tile v-else :key="selected.id" width="100%">
+                        <v-card elevation="2" tile class="word" style="background-color: lightsteelblue;" v-if="words.length > 0">
+                            <table><tr>
+                                <td class="text-left" width="30px"></td>
+                                <td class="text-left" width="230px" style="max-width: 240px;">单词</td>
+                                <td class="text-left" width="230px" style="max-width: 240px;">读音</td>
+                                <td class="text-left">翻译</td>
+                            </tr></table>
+                        </v-card>
+                        <v-card elevation="2" tile v-for="item in words" :key="item.id" :id="'word_' + item.id" class="word">
+                            <table><tr>
+                                <td class="text-left list" width="30px"><v-icon @mousedown="clickWord(item.id, $event);">mdi-leaf</v-icon></td>
+                                <td class="text-left list" width="230px" style="max-width: 240px;">{{ item.japanese.japanese }}</td>
+                                <td class="text-left list" width="230px" style="max-width: 240px;">{{ item.japanese.hiragana }}</td>
+                                <td class="text-left list">{{ item.comment }}</td>
+                            </tr></table>
+                        </v-card>
+                        <div class="pagination-container" style="margin-bottom:30px" v-if="words.length > 0">
+                            <v-pagination
+                                v-model="page"
+                                :circle="circle"
+                                :disabled="disabled"
+                                :length="length"
+                                :next-icon="nextIcon"
+                                :prev-icon="prevIcon"
+                                :page="page"
+                                :total-visible="totalVisible"
+                            ></v-pagination>
+                        </div>
                     </v-card>
                 </v-scroll-y-transition>
             </v-col>
         </v-row>
     </v-card>
+        <v-dialog v-model="dialog" max-width="290">
+            <v-card>
+                <v-card-title class="headline">
+                    confirm
+                </v-card-title>
+                <v-card-text style="font-family: 'Yahei Mono';font-size: 14px;">
+                    确认移动？
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="green darken-1" text @click="dialog = false">
+                        算了
+                    </v-btn>
+                    <v-btn color="green darken-1" text @click="moveWordToNewBook()">
+                        好的
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </v-app>
 </template>
 
@@ -67,6 +100,26 @@
             open: [],
             books: [],
             words: [],
+            // 在树形结构中选中的生词本的ID。
+            selectedBookId: -1,
+            // 要移入的生词本ID。
+            moveToBookId: -1,
+            wordSelected: false,
+            selectedWordId: -1,
+            selectedObj: null,
+            sb_bkx: 0,
+            sb_bky: 0,
+            dialog: false,
+            /* 分页相关 开始 */
+            circle: false,
+            disabled: false,
+            length: 10,
+            nextIcon: 'mdi-chevron-right',
+            prevIcon: 'mdi-chevron-left',
+            page: 1,
+            // 可见页面按钮的最大数量。
+            totalVisible: 10,
+            /* 分页相关 结束 */
         }),
 
         computed: {
@@ -84,10 +137,11 @@
                 const id = this.active[0]
 
                 if (id) {
+                    this.selectedBookId = id;
                     this.words = [];
-                    fetch('http://127.0.0.1:8000/api/select_words_in_book?book_id=' + id)
+                    fetch('http://127.0.0.1:8000/api/select_words_in_book?book_id=' + id + "&page=" + this.page)
                         .then(res => res.json())
-                        .then(json => (this.words.push(...json)))
+                        .then(json => {this.words.push(...json.list); this.length = json.totalPage;})
                         .catch(err => console.warn(err))
                 }
 
@@ -102,6 +156,111 @@
                     .then(json => (item.children.push(...json)))
                     .catch(err => console.warn(err))
             },
+            clickWord(id, event) {
+                this.wordSelected = true;
+                let divObj = document.getElementById("word_" + id);
+
+                let clonedNode = divObj.cloneNode(true);
+                clonedNode.setAttribute("id", "clone_word_" + id);
+                document.getElementById("bookApp").appendChild(clonedNode);
+
+                this.selectedObj = clonedNode;
+                clonedNode.style.position = 'absolute';
+                clonedNode.style.background = '#66CCFF';
+                clonedNode.style.visibility = "hidden";
+                clonedNode.style['z-index'] = 9999;
+
+                this.sb_bkx = document.getElementsByClassName("el-scrollbar")[0].offsetWidth;
+                this.sb_bky = document.getElementsByClassName("navbar")[0].offsetHeight;
+            },
+            moveWord(event) {
+                if (this.wordSelected) {
+                    let endx = event.clientX - this.sb_bkx + window.scrollX;
+                    let endy = event.clientY - this.sb_bky + window.scrollY;
+                    this.selectedObj.style.visibility = "visible";
+                    this.selectedObj.style.left = endx + "px";
+                    this.selectedObj.style.top = endy + "px";
+                }
+            },
+            // 松开鼠标左键后的处理。
+            cancelMove() {
+                if (this.wordSelected) {
+                    this.wordSelected = false;
+                    document.getElementById("bookApp").removeChild(this.selectedObj);
+                    let books = document.getElementsByClassName("books");
+                    if (books) {
+                        for (let i in books) {
+                            if (books[i].style) {
+                                books[i].style.backgroundColor = "";
+                            }
+                        }
+                    }
+                }
+            },
+            mouseenter(id, event) {
+                if (this.wordSelected && this.selectedBookId != id) {
+                    if (this.books.filter(obj => (obj.id == id && obj.children)).length == 0) {
+                        event.target.style.backgroundColor = "#3399FF";
+                    }
+                }
+            },
+            mouseleave(id, event) {
+                if (this.wordSelected) {
+                    event.target.style.backgroundColor = "";
+                }
+            },
+            // 拖动单词到某个生词本上后松开鼠标左键后的处理。
+            mouseup(id, event) {
+                if (this.wordSelected && this.selectedBookId != id) {
+                    if (this.books.filter(obj => (obj.id == id && obj.children)).length == 0) {
+                        this.dialog = true;
+                        this.moveToBookId = id;
+                    }
+                }
+            },
+            moveWordToNewBook() {
+                this.dialog = false;
+                if (this.moveToBookId < 0 || this.selectedWordId < 0) {
+                    return;
+                }
+                return fetch('http://127.0.0.1:8000/api/move_word?word_id=' + selectedWordId + "&book_id=" + moveToBookId)
+                    .then(res => res.json())
+                    .then(json => {
+                        this.moveToBookId = -1;
+                        document.getElementById("word_" + id).remove();
+                    })
+                    .catch(err => console.warn(err))
+            }
         },
     }
 </script>
+<style>
+    div {
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+    .word {
+        margin: 4px;
+        padding: 4px;
+        background-color: #CBFFD3;
+        font-family: "Yahei Mono";
+        font-size: 12px;
+    }
+    .books {
+        font-family: "Yahei Mono";
+        font-size: 12px;
+    }
+    .pagination-container {
+        display: inline-block;
+        float: right;
+        margin-top: 20px;
+    }
+    .list {
+        white-space: nowrap;
+        overflow: hidden;
+    }
+    .v-application--wrap {
+        min-height: 100%;
+    }
+</style>
