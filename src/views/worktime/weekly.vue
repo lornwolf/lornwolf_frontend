@@ -103,7 +103,18 @@
         data() {
             return {
                 week: '',
-                data: null,
+                data: {
+                    dates: {
+                        'sunday': '日曜日',
+                        'saturday': '土曜日',
+                        'tuesday': '火曜日',
+                        'wednesday': '水曜日',
+                        'friday': '金曜日',
+                        'thurday': '木曜日',
+                        'monday': '月曜日'
+                    },
+                    worktimes: []
+                },
                 listLoading: true,
                 downloadLoading: false,
                 disabled: false

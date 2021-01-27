@@ -94,12 +94,6 @@ export const constantRoutes = [
                 name: 'dictionary',
                 component: () => import('@/views/dictionary/index'),
                 meta: { title: '辞書', icon: 'table' }
-            },
-            {
-                path: 'books',
-                name: 'books',
-                component: () => import('@/views/dictionary/books'),
-                meta: { title: '生詞本', icon: 'table' }
             }
         ]
     },
@@ -108,15 +102,31 @@ export const constantRoutes = [
     { path: '*', redirect: '/404', hidden: true }
 ]
 
+export const asyncRoutes = [
+    {
+        path: '/study',
+        component: Layout,
+        redirect: '/study/books',
+        name: 'Study',
+        meta: { title: '学習管理', icon: 'example', roles: ['01'] },
+        children: [
+            {
+                path: 'books',
+                name: 'books',
+                component: () => import('@/views/study/books'),
+                meta: { title: '生詞本', icon: 'table', roles: ['01'] }
+            }
+        ]
+    }
+]
+
 const createRouter = () => new Router({
-    // mode: 'history', // require service support
     scrollBehavior: () => ({ y: 0 }),
     routes: constantRoutes
 })
 
 const router = createRouter()
 
-// Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
 export function resetRouter() {
     const newRouter = createRouter()
     router.matcher = newRouter.matcher // reset router

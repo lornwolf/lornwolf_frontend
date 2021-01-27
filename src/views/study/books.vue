@@ -81,7 +81,7 @@
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn color="green darken-1" text @click="dialog = false">
+                    <v-btn color="green darken-1" text @click="dialog = false;selectedWordId = -1;">
                         算了
                     </v-btn>
                     <v-btn color="green darken-1" text @click="moveWordToNewBook()">
@@ -139,7 +139,7 @@
                 if (id) {
                     this.selectedBookId = id;
                     this.words = [];
-                    fetch('http://127.0.0.1:8000/api/select_words_in_book?book_id=' + id + "&page=" + this.page)
+                    fetch(process.env.VUE_APP_PYTHON_API + '/select_words_in_book?book_id=' + id + "&page=" + this.page)
                         .then(res => res.json())
                         .then(json => {this.words.push(...json.list); this.length = json.totalPage;})
                         .catch(err => console.warn(err))
@@ -151,18 +151,20 @@
 
         methods: {
             async fetchBooks (item) {
-                return fetch('http://127.0.0.1:8000/api/select_all_books')
+                return fetch(process.env.VUE_APP_PYTHON_API + '/select_all_books')
                     .then(res => res.json())
                     .then(json => (item.children.push(...json)))
                     .catch(err => console.warn(err))
             },
             clickWord(id, event) {
                 this.wordSelected = true;
+                this.selectedWordId = id;
                 let divObj = document.getElementById("word_" + id);
 
                 let clonedNode = divObj.cloneNode(true);
                 clonedNode.setAttribute("id", "clone_word_" + id);
                 document.getElementById("bookApp").appendChild(clonedNode);
+                divObj.style.visibility = "hidden";
 
                 this.selectedObj = clonedNode;
                 clonedNode.style.position = 'absolute';
@@ -186,7 +188,9 @@
             cancelMove() {
                 if (this.wordSelected) {
                     this.wordSelected = false;
+                    // 删掉克隆的生词DIV对象。
                     document.getElementById("bookApp").removeChild(this.selectedObj);
+                    // 清除生词本树的底色。
                     let books = document.getElementsByClassName("books");
                     if (books) {
                         for (let i in books) {
@@ -194,6 +198,15 @@
                                 books[i].style.backgroundColor = "";
                             }
                         }
+                    }
+                    // 回复列表中的生词DIV对象为可见。
+                    let divObj = document.getElementById("word_" + this.selectedWordId);
+                    if (divObj) {
+                        divObj.style.visibility = "visible";
+                    }
+                    // 如果没有被拖到生词本上，则初始化selectedWordId变量。
+                    if (this.moveToBookId < 0) {
+                        this.selectedWordId = -1;
                     }
                 }
             },
@@ -223,10 +236,11 @@
                 if (this.moveToBookId < 0 || this.selectedWordId < 0) {
                     return;
                 }
-                return fetch('http://127.0.0.1:8000/api/move_word?word_id=' + selectedWordId + "&book_id=" + moveToBookId)
+                return fetch(process.env.VUE_APP_PYTHON_API + '/move_word?word_id=' + this.selectedWordId + "&book_id=" + this.moveToBookId)
                     .then(res => res.json())
                     .then(json => {
                         this.moveToBookId = -1;
+                        this.selectedWordId = -1;
                         document.getElementById("word_" + id).remove();
                     })
                     .catch(err => console.warn(err))
