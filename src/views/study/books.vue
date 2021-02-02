@@ -39,20 +39,42 @@
                     </div>
                     <v-card elevation="2" tile v-else :key="selected.id" width="100%">
                         <v-card elevation="2" tile class="word" style="background-color: lightsteelblue;" v-if="words.length > 0">
-                            <table><tr>
-                                <td class="text-left" width="30px"></td>
-                                <td class="text-left" width="230px" style="max-width: 240px;">单词</td>
-                                <td class="text-left" width="230px" style="max-width: 240px;">读音</td>
-                                <td class="text-left">翻译</td>
-                            </tr></table>
+                            <table>
+                                <tr>
+                                    <td class="text-left" width="30px"></td>
+                                    <td class="text-left" width="230px" style="max-width: 240px;">单词</td>
+                                    <td class="text-left" width="230px" style="max-width: 240px;">读音</td>
+                                    <td class="text-left">翻译</td>
+                                </tr>
+                            </table>
                         </v-card>
                         <v-card elevation="2" tile v-for="item in words" :key="item.id" :id="'word_' + item.id" class="word">
-                            <table><tr>
-                                <td class="text-left list" width="30px"><v-icon @mousedown="clickWord(item.id, $event);">mdi-leaf</v-icon></td>
-                                <td class="text-left list" width="230px" style="max-width: 240px;">{{ item.japanese.japanese }}</td>
-                                <td class="text-left list" width="230px" style="max-width: 240px;">{{ item.japanese.hiragana }}</td>
-                                <td class="text-left list">{{ item.comment }}</td>
-                            </tr></table>
+                            <table style="width:100%;">
+                                <tr>
+                                    <td class="text-left list" width="30px"><v-icon @mousedown="clickWord(item.id, $event);">mdi-leaf</v-icon></td>
+                                    <td class="text-left list" width="230px" style="max-width: 240px;">{{ item.japanese.japanese }}</td>
+                                    <td class="text-left list" width="230px" style="max-width: 240px;">{{ item.japanese.hiragana }}</td>
+                                    <td class="text-left list">{{ item.comment }}</td>
+                                    <td width="100px">
+                                        <v-btn
+                                            icon
+                                            color="cyan"
+                                        >
+                                            <v-icon dark>
+                                                mdi-pencil
+                                            </v-icon>
+                                        </v-btn>
+                                        <v-btn
+                                            icon
+                                            color="red"
+                                        >
+                                            <v-icon dark>
+                                                mdi-delete
+                                            </v-icon>
+                                        </v-btn>
+                                    </td>
+                                </tr>
+                            </table>
                         </v-card>
                         <div class="pagination-container" style="margin-bottom:30px" v-if="words.length > 0">
                             <v-pagination
@@ -90,6 +112,22 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+        <v-dialog v-model="errorDialog" max-width="290">
+            <v-card>
+                <v-card-title class="headline">
+                    error
+                </v-card-title>
+                <v-card-text style="font-family: 'Yahei Mono';font-size: 14px;">
+                    {{ errorMessage }}
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="green darken-1" text @click="errorDialog = false;">
+                        好的
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </v-app>
 </template>
 
@@ -110,6 +148,8 @@
             sb_bkx: 0,
             sb_bky: 0,
             dialog: false,
+            errorDialog: false,
+            errorMessage: "",
             /* 分页相关 开始 */
             circle: false,
             disabled: false,
@@ -233,17 +273,25 @@
             },
             moveWordToNewBook() {
                 this.dialog = false;
+                let obj = this;
                 if (this.moveToBookId < 0 || this.selectedWordId < 0) {
                     return;
                 }
                 return fetch(process.env.VUE_APP_PYTHON_API + '/move_word?word_id=' + this.selectedWordId + "&book_id=" + this.moveToBookId)
-                    .then(res => res.json())
+                    .then(res => {
+                        res.json().then(function(data) {
+                            if (data.error) {
+                                obj.errorMessage = data.error;
+                                obj.errorDialog = true;
+                            }
+                        })
+                    })
                     .then(json => {
+                        document.getElementById("word_" + this.selectedWordId).remove();
                         this.moveToBookId = -1;
                         this.selectedWordId = -1;
-                        document.getElementById("word_" + id).remove();
                     })
-                    .catch(err => console.warn(err))
+                    .catch(err => console.warn(err));
             }
         },
     }
