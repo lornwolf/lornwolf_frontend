@@ -56,18 +56,12 @@
                                     <td class="text-left list" width="230px" style="max-width: 240px;">{{ item.japanese.hiragana }}</td>
                                     <td class="text-left list">{{ item.comment }}</td>
                                     <td width="100px">
-                                        <v-btn
-                                            icon
-                                            color="cyan"
-                                        >
+                                        <v-btn icon color="cyan" @click="editWordComment(item)">
                                             <v-icon dark>
                                                 mdi-pencil
                                             </v-icon>
                                         </v-btn>
-                                        <v-btn
-                                            icon
-                                            color="red"
-                                        >
+                                        <v-btn icon color="red" @click="deleteWordId = item.id; deleteWord = item.japanese.japanese; deleteConfirmDialog = true;">
                                             <v-icon dark>
                                                 mdi-delete
                                             </v-icon>
@@ -93,41 +87,106 @@
             </v-col>
         </v-row>
     </v-card>
-        <v-dialog v-model="dialog" max-width="290">
-            <v-card>
-                <v-card-title class="headline">
-                    confirm
-                </v-card-title>
-                <v-card-text style="font-family: 'Yahei Mono';font-size: 14px;">
-                    确认移动？
-                </v-card-text>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="green darken-1" text @click="dialog = false;selectedWordId = -1;">
-                        算了
-                    </v-btn>
-                    <v-btn color="green darken-1" text @click="moveWordToNewBook()">
-                        好的
-                    </v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
-        <v-dialog v-model="errorDialog" max-width="290">
-            <v-card>
-                <v-card-title class="headline">
-                    error
-                </v-card-title>
-                <v-card-text style="font-family: 'Yahei Mono';font-size: 14px;">
-                    {{ errorMessage }}
-                </v-card-text>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="green darken-1" text @click="errorDialog = false;">
-                        好的
-                    </v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
+    <v-dialog v-model="editDialog" max-width="560" width="560">
+        <v-card>
+            <v-card-title class="headline" style="font-family: 'Yahei Mono' !important;font-size: 16px !important;">
+                编辑
+            </v-card-title>
+            <v-card-text style="font-family: 'Yahei Mono';font-size: 14px;">
+                <v-container>
+                    <v-row>
+                        <v-col cols="12">
+                            <v-text-field
+                                label="单词"
+                                :value="wordForEdit"
+                                readonly
+                            ></v-text-field>
+                        </v-col>
+                        <v-col cols="12">
+                            <v-text-field
+                                label="假名"
+                                :value="kanaForEdit"
+                                readonly
+                            ></v-text-field>
+                        </v-col>
+                        <v-col cols="12">
+                            <v-text-field
+                                label="释义"
+                                :value="commentForEdit"
+                                required
+                            ></v-text-field>
+                        </v-col>
+                    </v-row>
+                </v-container>
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="green darken-1" text @click="editDialog = false;">
+                    算了
+                </v-btn>
+                <v-btn color="green darken-1" text @click="updateWordComment()">
+                    好的
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+    <v-dialog v-model="deleteConfirmDialog" max-width="290">
+        <v-card>
+            <v-card-title class="headline" style="font-family: 'Yahei Mono' !important;font-size: 16px !important;">
+                确认
+            </v-card-title>
+            <v-card-text style="font-family: 'Yahei Mono';font-size: 14px;">
+                确认要从生词本中删除以下单词？
+            </v-card-text>
+            <v-card-text style="font-family: 'Yahei Mono';font-size: 14px;">
+                {{ deleteWord }}
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="green darken-1" text @click="deleteWordId = false; deleteConfirmDialog = false;">
+                    算了
+                </v-btn>
+                <v-btn color="green darken-1" text @click="deleteWordFromBook();">
+                    好的
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+    <v-dialog v-model="dialog" max-width="290">
+        <v-card>
+            <v-card-title class="headline" style="font-family: 'Yahei Mono' !important;font-size: 16px !important;">
+                确认
+            </v-card-title>
+            <v-card-text style="font-family: 'Yahei Mono';font-size: 14px;">
+                确认移动？
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="green darken-1" text @click="dialog = false;selectedWordId = -1;">
+                    算了
+                </v-btn>
+                <v-btn color="green darken-1" text @click="moveWordToNewBook()">
+                    好的
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+    <v-dialog v-model="errorDialog" max-width="290">
+        <v-card>
+            <v-card-title class="headline" style="font-family: 'Yahei Mono' !important;font-size: 16px !important;">
+                错误
+            </v-card-title>
+            <v-card-text style="font-family: 'Yahei Mono';font-size: 14px;">
+                {{ errorMessage }}
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="green darken-1" text @click="errorDialog = false;">
+                    好的
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
     </v-app>
 </template>
 
@@ -143,12 +202,17 @@
             // 要移入的生词本ID。
             moveToBookId: -1,
             wordSelected: false,
+            // 拖拽中的单词ID。
             selectedWordId: -1,
             selectedObj: null,
             sb_bkx: 0,
             sb_bky: 0,
+            /* 对话框显示控制相关 开始 */
+            editDialog: false,
             dialog: false,
             errorDialog: false,
+            deleteConfirmDialog: false,
+            /* 对话框显示控制相关 结束 */
             errorMessage: "",
             /* 分页相关 开始 */
             circle: false,
@@ -160,6 +224,16 @@
             // 可见页面按钮的最大数量。
             totalVisible: 10,
             /* 分页相关 结束 */
+            // 要编辑的单词。
+            wordForEdit: '',
+            // 要编辑的单词假名。
+            kanaForEdit: '',
+            // 要编辑的单词释义。
+            commentForEdit: '',
+            // 要删除的单词ID。
+            deleteWordId: -1,
+            // 要删除的单词。
+            deleteWord: ''
         }),
 
         computed: {
@@ -167,7 +241,7 @@
                 return [
                     {
                         name: 'Word Books',
-                        children: this.books,
+                        children: this.books
                     },
                 ]
             },
@@ -292,6 +366,21 @@
                         this.selectedWordId = -1;
                     })
                     .catch(err => console.warn(err));
+            },
+            editWordComment(item) {
+                this.wordForEdit = item.japanese.japanese;
+                this.kanaForEdit = item.japanese.hiragana
+                this.commentForEdit = item.comment;
+                this.editDialog = true;
+            },
+            updateWordComment() {
+                this.editDialog = false;
+            },
+            confirmDelete() {
+                this.deleteConfirmDialog = true;
+            },
+            deleteWordFromBook() {
+                this.deleteConfirmDialog = false;
             }
         },
     }
