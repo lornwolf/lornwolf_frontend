@@ -36,7 +36,7 @@
 </template>
 
 <script>
-import { selectJapanese, selectByLike, selectByHana, selectExamplesByLikeJp, selectExamplesByLikeCn, selectByCn, googleImageSearch } from '@/api/tools'
+import { selectJapanese, selectByLike, selectByHana, selectExamplesByLikeJp, selectExamplesByLikeCn, selectByCn } from '@/api/tools'
 
 export default {
     data() {

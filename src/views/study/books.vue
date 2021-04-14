@@ -112,7 +112,7 @@
                         <v-col cols="12">
                             <v-text-field
                                 label="释义"
-                                :value="commentForEdit"
+                                v-model="commentForEdit"
                                 required
                             ></v-text-field>
                         </v-col>
@@ -143,7 +143,7 @@
             </v-card-text>
             <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="green darken-1" text @click="deleteWordId = false; deleteConfirmDialog = false;">
+                <v-btn color="green darken-1" text @click="deleteWordId = -1; deleteConfirmDialog = false;">
                     算了
                 </v-btn>
                 <v-btn color="green darken-1" text @click="deleteWordFromBook();">
@@ -313,7 +313,7 @@
                             }
                         }
                     }
-                    // 回复列表中的生词DIV对象为可见。
+                    // 恢复列表中的生词DIV对象为可见。
                     let divObj = document.getElementById("word_" + this.selectedWordId);
                     if (divObj) {
                         divObj.style.visibility = "visible";
@@ -352,35 +352,50 @@
                     return;
                 }
                 return fetch(process.env.VUE_APP_PYTHON_API + '/move_word?word_id=' + this.selectedWordId + "&book_id=" + this.moveToBookId)
-                    .then(res => {
-                        res.json().then(function(data) {
-                            if (data.error) {
-                                obj.errorMessage = data.error;
-                                obj.errorDialog = true;
-                            }
-                        })
-                    })
+                    .then(res => res.json())
                     .then(json => {
-                        document.getElementById("word_" + this.selectedWordId).remove();
-                        this.moveToBookId = -1;
-                        this.selectedWordId = -1;
-                    })
-                    .catch(err => console.warn(err));
+                        if (json.error) {
+                            obj.errorMessage = json.error;
+                            obj.errorDialog = true;
+                        } else {
+                            document.getElementById("word_" + this.selectedWordId).remove();
+                            this.moveToBookId = -1;
+                            this.selectedWordId = -1;
+                        }
+                    }).catch(err => console.warn(err));
             },
             editWordComment(item) {
+                this.selectedWordId = item.id;
                 this.wordForEdit = item.japanese.japanese;
                 this.kanaForEdit = item.japanese.hiragana
                 this.commentForEdit = item.comment;
                 this.editDialog = true;
             },
             updateWordComment() {
-                this.editDialog = false;
-            },
-            confirmDelete() {
-                this.deleteConfirmDialog = true;
+                return fetch(process.env.VUE_APP_PYTHON_API + '/update_word_comment?word_id=' + this.selectedWordId + "&comment=" + this.commentForEdit)
+                    .then(res => res.json())
+                    .then(json => {
+                        if (json.error) {
+                            this.errorMessage = json.error;
+                            this.errorDialog = true;
+                        } else {
+                            this.selectedWordId = -1;
+                            this.editDialog = false;
+                        }
+                    }).catch(err => console.warn(err));
             },
             deleteWordFromBook() {
-                this.deleteConfirmDialog = false;
+                return fetch(process.env.VUE_APP_PYTHON_API + '/remove_word_from_book?word_id=' + this.deleteWordId)
+                    .then(res => res.json())
+                    .then(json => {
+                        if (json.error) {
+                            this.errorMessage = json.error;
+                            this.errorDialog = true;
+                        } else {
+                            this.deleteWordId = -1;
+                            this.deleteConfirmDialog = false;
+                        }
+                    }).catch(err => console.warn(err));
             }
         },
     }

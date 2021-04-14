@@ -115,6 +115,12 @@ export const asyncRoutes = [
                 name: 'books',
                 component: () => import('@/views/study/books'),
                 meta: { title: '生詞本', icon: 'table', roles: ['01'] }
+            },
+            {
+                path: 'daily',
+                name: 'daily',
+                component: () => import('@/views/study/daily'),
+                meta: { title: '每日任务', icon: 'table', roles: ['01'] }
             }
         ]
     }
