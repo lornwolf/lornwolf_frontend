@@ -44,14 +44,18 @@
         data: () => ({
             // 卡片正反面状态。
             status: 0,
+            // 当前单词的索引。
             index: -1,
             japanese: '',
             japaneseId: '',
             hiragana: '',
             explanation: '',
             html: '',
+            // 本次要复习的所有单词。
             words: [],
-            progress: 100
+            progress: 100,
+            // 复习计数器。
+            count: 0
         }),
         created() {
             fetch('https://www.lornwolf.cn/dictionary/select_words_for_study?loginId=lornwolf')
@@ -87,9 +91,88 @@
         },
         methods: {
             next() {
-                if (this.index >= this.words.length - 1) {
+                if (this.index == this.words.length - 1) {
+                    this.index = 0;
                     return;
                 }
+                // 当前单词复习次数加1（每个单词复习两遍）。
+                let currentWord = this.words[this.index];
+                if (!currentWord.times) {
+                    currentWord.times = 1;
+                } else {
+                    let baseDate = null, prof = currentWord.prof;
+                    let nextResiveDate = currentWord.nextResiveDate ? new Date(currentWord.nextResiveDate) : null;
+                    if (nextResiveDate == null || nextResiveDate <= new Date()) {
+                        baseDate = new Date();
+                        // 计算下次复习日期。
+                        switch (currentWord.prof) {
+                        case 0:
+                            prof = 1;
+                            nextResiveDate = baseDate + 1;
+                            break;
+                        case 1:
+                            prof = 2;
+                            nextResiveDate = baseDate + 2;
+                            break;
+                        case 2:
+                            prof = 4;
+                            nextResiveDate = baseDate + 4;
+                            break;
+                        case 4:
+                            prof = 7;
+                            nextResiveDate = baseDate + 7;
+                            break;
+                        case 7:
+                            prof = 15;
+                            nextResiveDate = baseDate + 15;
+                            break;
+                        case 15:
+                            prof = 30;
+                            nextResiveDate = baseDate + 30;
+                            break;
+                        case 30:
+                            prof = 30;
+                            nextResiveDate = baseDate + 30;
+                            break;
+                        case 60:
+                            prof = 60;
+                            nextResiveDate = baseDate + 60;
+                            break;
+                        case 180:
+                            prof = 180;
+                            nextResiveDate = baseDate + 180;
+                            break;
+                        default:
+                            prof = 1;
+                            nextResiveDate = baseDate + 1;
+                            break;
+                        }
+                        let obj = {
+                            id : currentWord.japanese.id,
+                            prof : prof,
+                            nextResiveDate : this.time2str(nextResiveDate, "YYYY-MM-DD")
+                        };
+                        // 将下次复习时间更新至数据库。
+                        fetch("https://www.lornwolf.cn/dictionary/update_word?word=" + JSON.stringify(obj))
+                            .then(res => res.text())
+                            .then(text => {
+                                if (text.indexOf("ERROR") >= 0) {
+                                    console.warn(text);
+                                }
+                            })
+                            .catch(err => console.warn(err))
+                    }
+                }
+
+                // 计数器加1。
+                this.count += 1;
+                // 判断是否完成了一组任务。
+                if (this.count == this.words.length * 2) {
+                    this.count = 0;
+                    return;
+                }
+
+                // 清空显示内容。
                 this.japanese = '';
                 this.hiragana = '';
                 this.explanation = '';
@@ -189,6 +272,27 @@
                         }
                     }
                 }
+            },
+            time2str(time = 0, format = "Y-M-D h:i:s") {
+                if (time == 0) return "";
+
+                let date = new Date(time);
+                let Y = date.getFullYear();
+                let M = date.getMonth() + 1 < 10
+                        ? "0" + (date.getMonth() + 1)
+                        : date.getMonth() + 1;
+                let D = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+                let h = date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
+                let i = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
+                let s = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
+
+                return format
+                    .replace("Y", Y)
+                    .replace("M", M)
+                    .replace("D", D)
+                    .replace("h", h)
+                    .replace("i", i)
+                    .replace("s", s);
             }
         }
     }
