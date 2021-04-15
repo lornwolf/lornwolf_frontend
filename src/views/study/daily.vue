@@ -28,15 +28,37 @@
         </div>
         <div align="center" justify="space-around">
             <div style="text-align:center;">
-                <v-btn color="green darken-1" @click="">
+                <v-btn color="green darken-1" @click="" class="button">
                     重新复习
                 </v-btn>
                 &nbsp;&nbsp;&nbsp;&nbsp;
-                <v-btn color="green darken-1" @click="next();">
+                <v-btn color="green darken-1" @click="next();" id="btnNextWord">
                     下一单词
                 </v-btn>
             </div>
         </div>
+        <br>
+        <br>
+        <v-progress-linear v-model="totalProgress"></v-progress-linear>
+        <v-dialog v-model="dialog" max-width="290">
+            <v-card>
+                <v-card-title class="headline" style="font-family: 'Yahei Mono' !important;font-size: 16px !important;">
+                    完成
+                </v-card-title>
+                <v-card-text style="font-family: 'Yahei Mono';font-size: 14px;">
+                    已完成一组复习。
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="green darken-1" text @click="dialog = false;loadDictForStudy();">
+                        再来一组
+                    </v-btn>
+                    <v-btn color="green darken-1" text @click="dialog = false;">
+                        就此结束
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </v-app>
 </template>
 <script>
@@ -53,123 +75,190 @@
             html: '',
             // 本次要复习的所有单词。
             words: [],
+            // 进度条初始值。
             progress: 100,
+            totalProgress: 0,
             // 复习计数器。
-            count: 0
+            count: 0,
+            // 是否随机复习。
+            random: false,
+            // 对话框显示flag。
+            dialog: false
         }),
         created() {
-            fetch('https://www.lornwolf.cn/dictionary/select_words_for_study?loginId=lornwolf')
-                .then(res => res.json())
-                .then(json => {
-                    this.words.push(...json);
-                    if (this.words.length > 0) {
-                        this.index = 0;
-
-                        // 隐藏详细解释区域。
-                        this.showCnAndDetail(false);
-
-                        let word = this.words[0];
-                        this.japanese = word.japanese.japanese;
-                        this.japaneseId = word.japaneseId;
-                        this.hiragana = word.japanese.hiragana;
-                        this.explanation = word.comment;
-
-                        this.getDetail();
-
-                        // 5秒钟后显示详细解释。
-                        let that = this;
-                        var interval = setInterval(function() {
-                            that.progress -= 5;
-                            if (that.progress <= 0) {
-                                that.showCnAndDetail(true);
-                                clearInterval(interval);
-                            }
-                        }, 250);
-                    }
-                })
-                .catch(err => console.warn(err))
+            this.loadDictForStudy();
         },
         methods: {
+            loadDictForStudy() {
+                // 变量初始化。
+                this.status = 0;
+                this.index = -1;
+                this.japanese = '';
+                this.japaneseId = '';
+                this.hiragana = '';
+                this.explanation = '';
+                this.html = '';
+                this.words = [];
+                this.progress = 100;
+                this.totalProgress = 0;
+                this.count = 0;
+                this.random = false;
+                // 获取要复习的单词。
+                fetch('https://www.lornwolf.cn/dictionary/select_words_for_study?loginId=lornwolf', {cache: "no-cache"})
+                    .then(res => res.json())
+                    .then(async(json) => {
+                        if (json.length == 0) {
+                            // 如果没有当日任务，则按复习日期排序取前15件。
+                            try {
+                                let response = await fetch('https://www.lornwolf.cn/dictionary/select_words_random?loginId=lornwolf&random=false', {cache: "no-cache"});
+                                return response.json();
+                            } catch (error) {
+                                console.log('Request Failed', error);
+                            }
+                            // 随机复习标记。
+                            this.random = true;
+                        } else {
+                            return json;
+                        }
+                    })
+                    .then(json => {
+                        this.words.push(...json);
+                        if (this.words.length > 0) {
+                            this.index = 0;
+
+                            // 隐藏详细解释区域。
+                            this.showCnAndDetail(false);
+                            // 设置按钮不可用。
+                            document.getElementById('btnNextWord').classList.remove('v-btn--is-elevated');
+                            document.getElementById('btnNextWord').classList.add('v-btn--disabled');
+                            // 获取单词内容。
+                            let word = this.words[0];
+                            this.japanese = word.japanese.japanese;
+                            this.japaneseId = word.japaneseId;
+                            this.hiragana = word.japanese.hiragana;
+                            this.explanation = word.comment;
+                            // 生成详细页面。
+                            this.getDetail();
+
+                            // 5秒钟后显示详细解释。
+                            let that = this;
+                            let interval = setInterval(function() {
+                                that.progress -= 5;
+                                if (that.progress <= 0) {
+                                    that.showCnAndDetail(true);
+                                    // 恢复按钮活性。
+                                    document.getElementById('btnNextWord').classList.remove('v-btn--disabled');
+                                    document.getElementById('btnNextWord').classList.add('v-btn--is-elevated');
+                                    clearInterval(interval);
+                                }
+                            }, 250);
+                        }
+                    })
+                    .catch(err => console.warn(err))
+            },
             next() {
-                if (this.index == this.words.length - 1) {
-                    this.index = 0;
-                    return;
-                }
                 // 当前单词复习次数加1（每个单词复习两遍）。
                 let currentWord = this.words[this.index];
                 if (!currentWord.times) {
                     currentWord.times = 1;
                 } else {
-                    let baseDate = null, prof = currentWord.prof;
-                    let nextResiveDate = currentWord.nextResiveDate ? new Date(currentWord.nextResiveDate) : null;
-                    if (nextResiveDate == null || nextResiveDate <= new Date()) {
-                        baseDate = new Date();
-                        // 计算下次复习日期。
-                        switch (currentWord.prof) {
-                        case 0:
-                            prof = 1;
-                            nextResiveDate = baseDate + 1;
-                            break;
-                        case 1:
-                            prof = 2;
-                            nextResiveDate = baseDate + 2;
-                            break;
-                        case 2:
-                            prof = 4;
-                            nextResiveDate = baseDate + 4;
-                            break;
-                        case 4:
-                            prof = 7;
-                            nextResiveDate = baseDate + 7;
-                            break;
-                        case 7:
-                            prof = 15;
-                            nextResiveDate = baseDate + 15;
-                            break;
-                        case 15:
-                            prof = 30;
-                            nextResiveDate = baseDate + 30;
-                            break;
-                        case 30:
-                            prof = 30;
-                            nextResiveDate = baseDate + 30;
-                            break;
-                        case 60:
-                            prof = 60;
-                            nextResiveDate = baseDate + 60;
-                            break;
-                        case 180:
-                            prof = 180;
-                            nextResiveDate = baseDate + 180;
-                            break;
-                        default:
-                            prof = 1;
-                            nextResiveDate = baseDate + 1;
-                            break;
+                    // 一个单词复习两遍以后，更新下次复习日期和最终复习日期。
+                    if (!this.random) {
+                        let baseDate = null, prof = currentWord.prof;
+                        let nextResiveDate = currentWord.nextResiveDate ? new Date(currentWord.nextResiveDate) : null;
+                        if (nextResiveDate == null || nextResiveDate <= new Date()) {
+                            baseDate = new Date();
+                            // 计算下次复习日期。
+                            switch (currentWord.prof) {
+                                case 0:
+                                    prof = 1;
+                                    baseDate.setDate(baseDate.getDate() + 1);
+                                    break;
+                                case 1:
+                                    prof = 2;
+                                    baseDate.setDate(baseDate.getDate() + 2);
+                                    break;
+                                case 2:
+                                    prof = 4;
+                                    baseDate.setDate(baseDate.getDate() + 4);
+                                    break;
+                                case 4:
+                                    prof = 7;
+                                    baseDate.setDate(baseDate.getDate() + 7);
+                                    break;
+                                case 7:
+                                    prof = 15;
+                                    baseDate.setDate(baseDate.getDate() + 15);
+                                    break;
+                                case 15:
+                                    prof = 30;
+                                    baseDate.setDate(baseDate.getDate() + 30);
+                                    break;
+                                case 30:
+                                    prof = 30;
+                                    baseDate.setDate(baseDate.getDate() + 30);
+                                    break;
+                                case 60:
+                                    prof = 60;
+                                    baseDate.setDate(baseDate.getDate() + 60);
+                                    break;
+                                case 180:
+                                    prof = 180;
+                                    baseDate.setDate(baseDate.getDate() + 180);
+                                    break;
+                                default:
+                                    prof = 1;
+                                    baseDate.setDate(baseDate.getDate() + 1);
+                                    break;
+                            }
+                            let obj = {
+                                id: currentWord.id,
+                                prof: prof,
+                                nextResiveDate: this.time2str(baseDate, "Y-M-D")
+                            };
+                            // 将下次复习时间更新至数据库。
+                            fetch("https://www.lornwolf.cn/dictionary/update_word?word=" + encodeURI(JSON.stringify(obj)), { cache: "no-cache" })
+                                .then(res => res.text())
+                                .then(text => {
+                                    if (text.indexOf("ERROR") >= 0) {
+                                        console.warn(text);
+                                    }
+                                })
+                                .catch(err => console.warn(err));
                         }
-                        let obj = {
-                            id : currentWord.japanese.id,
-                            prof : prof,
-                            nextResiveDate : this.time2str(nextResiveDate, "YYYY-MM-DD")
-                        };
-                        // 将下次复习时间更新至数据库。
-                        fetch("https://www.lornwolf.cn/dictionary/update_word?word=" + JSON.stringify(obj))
-                            .then(res => res.text())
-                            .then(text => {
-                                if (text.indexOf("ERROR") >= 0) {
-                                    console.warn(text);
-                                }
-                            })
-                            .catch(err => console.warn(err))
                     }
+                    // 将最终复习时间更新至数据库。
+                    fetch("https://www.lornwolf.cn/dictionary/update_last_revise_date?id=" + currentWord.id + "&type=1", { cache: "no-cache" })
+                        .then(res => res.text())
+                        .then(text => {
+                            if (text.indexOf("ERROR") >= 0) {
+                                console.warn(text);
+                            }
+                        })
+                        .catch(err => console.warn(err));
                 }
 
                 // 计数器加1。
                 this.count += 1;
+                this.totalProgress = (this.count * 100) / (this.words.length * 2);
                 // 判断是否完成了一组任务。
                 if (this.count == this.words.length * 2) {
+                    // 将复习记录保存至数据库。
+                    fetch("https://www.lornwolf.cn/dictionary/insert_revise_history?loginId=lornwolf&type=1", {cache: "no-cache"})
+                        .then(res => res.text())
+                        .then(text => {
+                            if (text.indexOf("ERROR") >= 0) {
+                                console.warn(text);
+                            }
+                        })
+                        .catch(err => console.warn(err))
                     this.count = 0;
+                    this.dialog = true;
                     return;
+                }
+
+                if (this.index == this.words.length - 1) {
+                    this.index = -1;
                 }
 
                 // 清空显示内容。
@@ -207,6 +296,9 @@
 
                 // 隐藏详细解释区域。
                 this.showCnAndDetail(false);
+                // 设置按钮不可用。
+                document.getElementById('btnNextWord').classList.remove('v-btn--is-elevated');
+                document.getElementById('btnNextWord').classList.add('v-btn--disabled');
                 this.progress = 100;
                 let that = this;
                 // 等卡片旋转完后再显示内容。
@@ -222,10 +314,13 @@
                 }, 1000)
 
                 // 5秒钟后显示详细解释。
-                var interval = setInterval(function() {
+                let interval = setInterval(function() {
                     that.progress -= 5;
                     if (that.progress <= 0) {
                         that.showCnAndDetail(true);
+                        // 恢复按钮活性。
+                        document.getElementById('btnNextWord').classList.remove('v-btn--disabled');
+                        document.getElementById('btnNextWord').classList.add('v-btn--is-elevated');
                         clearInterval(interval);
                     }
                 }, 250);
@@ -299,7 +394,7 @@
 </script>
 <style>
     .container {
-        width: 1080px;
+        width: auto;
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
         grid-gap: 20px;
@@ -326,7 +421,7 @@
         width: 100%;
         height: auto;
         border-radius: 0 0 5px 5px;
-        padding: 15px 10px;
+        padding: 5px 10px;
     }
 
     .japanese {
@@ -381,5 +476,9 @@
         font-size: 3vh;
         text-align: center;
         line-height: 360px;
+    }
+
+    .disable-events {
+        pointer-events: none
     }
 </style>

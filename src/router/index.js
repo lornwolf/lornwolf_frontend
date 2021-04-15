@@ -96,10 +96,7 @@ export const constantRoutes = [
                 meta: { title: '辞書', icon: 'table' }
             }
         ]
-    },
-
-    // 404 page must be placed at the end !!!
-    { path: '*', redirect: '/404', hidden: true }
+    }
 ]
 
 export const asyncRoutes = [
@@ -123,7 +120,10 @@ export const asyncRoutes = [
                 meta: { title: '每日任务', icon: 'table', roles: ['01'] }
             }
         ]
-    }
+    },
+
+    // 404 page must be placed at the end !!!
+    { path: '*', redirect: '/404', hidden: true }
 ]
 
 const createRouter = () => new Router({
@@ -134,8 +134,24 @@ const createRouter = () => new Router({
 const router = createRouter()
 
 export function resetRouter() {
-    const newRouter = createRouter()
-    router.matcher = newRouter.matcher // reset router
+    const newRouter = createRouter();
+    router.matcher = newRouter.matcher;
+
+    // 動的メニューのロール情報を初期化する。
+    for (let i = 0; i < asyncRoutes.length; i++) {
+        let route = asyncRoutes[i];
+        if (route.meta && route.meta.roles) {
+            route.meta.roles = [];
+        }
+        if (route.children) {
+            for (let j = 0; j < route.children.length; j++) {
+                let child = route.children[j];
+                if (child.meta && child.meta.roles) {
+                    child.meta.roles = [];
+                }
+            }
+        }
+    }
 }
 
 export default router
