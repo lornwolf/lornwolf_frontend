@@ -118,6 +118,12 @@ export const asyncRoutes = [
                 name: 'daily',
                 component: () => import('@/views/study/daily'),
                 meta: { title: '每日任务', icon: 'table', roles: ['01'] }
+            },
+            {
+                path: 'calendar',
+                name: 'calendar',
+                component: () => import('@/views/study/calendar'),
+                meta: { title: '学习记录', icon: 'table', roles: ['01'] }
             }
         ]
     },

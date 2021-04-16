@@ -28,7 +28,7 @@
         </div>
         <div align="center" justify="space-around">
             <div style="text-align:center;">
-                <v-btn color="green darken-1" @click="" class="button">
+                <v-btn color="green darken-1" @click="confirmDialog=true;" class="button">
                     重新复习
                 </v-btn>
                 &nbsp;&nbsp;&nbsp;&nbsp;
@@ -50,11 +50,30 @@
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
+                    <v-btn color="teal" text @click="dialog = false;$router.push({path: '/study/calendar'})">
+                        就此结束
+                    </v-btn>
                     <v-btn color="green darken-1" text @click="dialog = false;loadDictForStudy();">
                         再来一组
                     </v-btn>
-                    <v-btn color="green darken-1" text @click="dialog = false;">
-                        就此结束
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+        <v-dialog v-model="confirmDialog" max-width="290">
+            <v-card>
+                <v-card-title class="headline" style="font-family: 'Yahei Mono' !important;font-size: 16px !important;">
+                    确认
+                </v-card-title>
+                <v-card-text style="font-family: 'Yahei Mono';font-size: 14px;">
+                    确认作为全新单词重新复习？
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="green darken-1" text @click="confirmDialog = false;">
+                        算了
+                    </v-btn>
+                    <v-btn color="green darken-1" text @click="confirmDialog = false; next(0);">
+                        好的
                     </v-btn>
                 </v-card-actions>
             </v-card>
@@ -83,7 +102,8 @@
             // 是否随机复习。
             random: false,
             // 对话框显示flag。
-            dialog: false
+            dialog: false,
+            confirmDialog: false
         }),
         created() {
             this.loadDictForStudy();
@@ -156,9 +176,14 @@
                     })
                     .catch(err => console.warn(err))
             },
-            next() {
-                // 当前单词复习次数加1（每个单词复习两遍）。
+            next(step = 1) {
+                // 获取当前单词。
                 let currentWord = this.words[this.index];
+                // 判断是不是重新复习。
+                if (step == 0) {
+                    currentWord.prof = 0;
+                }
+                // 当前单词复习次数加1（每个单词复习两遍）。
                 if (!currentWord.times) {
                     currentWord.times = 1;
                 } else {
