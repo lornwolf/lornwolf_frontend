@@ -1,20 +1,18 @@
 <template>
     <v-app>
-        <div class="container">
-            <v-sheet height="600" width="1080">
-                <v-calendar
-                    ref="calendar"
-                    v-model="value"
-                    :weekdays="weekday"
-                    :type="type"
-                    :events="events"
-                    :event-overlap-mode="mode"
-                    :event-overlap-threshold="30"
-                    :event-color="getEventColor"
-                    @change="getEvents"
-                ></v-calendar>
-            </v-sheet>
-        </div>
+        <v-sheet height="600" width="1080" style="margin: 20px auto;">
+            <v-calendar
+                ref="calendar"
+                v-model="value"
+                :weekdays="weekday"
+                :type="type"
+                :events="events"
+                :event-overlap-mode="mode"
+                :event-overlap-threshold="30"
+                :event-color="getEventColor"
+                @change="getEvents"
+            ></v-calendar>
+        </v-sheet>
     </v-app>
 </template>
 <script>
