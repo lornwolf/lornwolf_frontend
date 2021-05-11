@@ -37,6 +37,7 @@
 
 <script>
 import { selectJapanese, selectByLike, selectByHana, selectExamplesByLikeJp, selectExamplesByLikeCn, selectByCn } from '@/api/tools'
+import { isKataKana, isHiragana } from '@/utils'
 
 export default {
     data() {
@@ -104,7 +105,7 @@ export default {
                         }
                         if (data[i].id) {
                             this.result[i] = {
-                                text: data[i].japanese + '（' + data[i].hiragana + '）',
+                                text: (isKataKana(data[i].japanese) || isHiragana(data[i].japanese)) ? data[i].japanese : data[i].japanese + '（' + data[i].hiragana + '）',
                                 name: data[i].id,
                                 content: con
                             }

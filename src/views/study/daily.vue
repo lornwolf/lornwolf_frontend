@@ -100,6 +100,8 @@
     </v-app>
 </template>
 <script>
+import { isKataKana, isHiragana } from '@/utils'
+
 export default {
     data: () => ({
         // 卡片正反面状态。
@@ -176,7 +178,7 @@ export default {
                         let word = this.words[0];
                         this.japanese = word.japanese.japanese;
                         this.japaneseId = word.japaneseId;
-                        this.hiragana = word.japanese.hiragana;
+                        this.hiragana = (isKataKana(this.japanese) || isHiragana(this.japanese)) ? '' : word.japanese.hiragana;
                         this.explanation = word.comment;
                         // 生成详细页面。
                         this.getDetail();
@@ -362,7 +364,7 @@ export default {
                 let word = that.words[that.index];
                 that.japanese = word.japanese.japanese;
                 that.japaneseId = word.japaneseId;
-                that.hiragana = word.japanese.hiragana;
+                that.hiragana = (isKataKana(that.japanese) || isHiragana(that.japanese)) ? '' : word.japanese.hiragana;
                 that.explanation = word.comment;
 
                 that.getDetail();
@@ -466,7 +468,7 @@ export default {
 
 .detail {
     width: 100%;
-    height: auto;
+    height: 289px;
     border-radius: 0 0 5px 5px;
     padding: 5px 10px;
     overflow: auto
@@ -545,5 +547,9 @@ export default {
 
 .disable-events {
     pointer-events: none
+}
+
+.v-application--wrap {
+    min-height: calc(100vh - 50px) !important;
 }
 </style>

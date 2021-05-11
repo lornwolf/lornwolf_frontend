@@ -130,3 +130,13 @@ export function debounce(func, wait, immediate) {
         }
     }
 }
+
+// 全角カナの判定.
+export function isKataKana(s) {
+    return !!s.match(/^[ァ-ヶー]*$/);
+}
+
+// 全角カナの判定.
+export function isHiragana(s) {
+    return !!s.match(/^[ぁ-んー]*$/);
+}
