@@ -455,7 +455,17 @@ export default {
     width: 600px;
     height: 420px;
     margin: 20px auto;
-    font-family: "Yahei Mono";
+    font-family: "Yahei Mono",serif;
+}
+
+@media only screen and (max-width: 620px) {
+    .card {
+        position: relative;
+        width: 95%;
+        height: 420px;
+        margin: 20px auto;
+        font-family: "Yahei Mono",serif;
+    }
 }
 
 .info {

@@ -1,6 +1,6 @@
 <template>
     <v-app>
-        <v-sheet height="600" width="1080" style="margin: 20px auto;">
+        <v-sheet height="600" class="calendar" style="margin: 20px auto;">
             <v-calendar
                 ref="calendar"
                 v-model="value"
@@ -72,4 +72,13 @@ export default {
 }
 </script>
 <style>
+.calendar {
+    width: 1080px;
+}
+
+@media only screen and (max-width: 1080px) {
+    .calendar {
+        width: 95%;
+    }
+}
 </style>
