@@ -37,7 +37,7 @@ export default {
     methods: {
         getEvents() {
             this.events = [];
-            fetch("https://www.lornwolf.cn/dictionary/select_revise_history?type=1", { cache: "no-cache" })
+            fetch("https://www.lornwolf.com/dictionary/select_revise_history?type=1", { cache: "no-cache" })
                 .then(res => res.json())
                 .then(json => {
                     for (let i=0; i < json.length; i++) {
@@ -50,7 +50,7 @@ export default {
                         })
                     }
                 })
-                .then(() => {return fetch("https://www.lornwolf.cn/dictionary/select_revise_history?type=2", { cache: "no-cache" });})
+                .then(() => {return fetch("https://www.lornwolf.com/dictionary/select_revise_history?type=2", { cache: "no-cache" });})
                 .then(res => res.json())
                 .then(json => {
                     for (let i=0; i < json.length; i++) {
