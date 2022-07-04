@@ -299,7 +299,7 @@ export default {
             this.count += 1;
             this.totalProgress = (this.count * 100) / (this.words.length * 2);
             // 判断是否完成了一组任务。
-            if (this.count == this.words.length * 2) {
+            if (this.count === this.words.length * 2) {
                 // 将复习记录保存至数据库。
                 fetch("https://www.lornwolf.com/dictionary/insert_revise_history?loginId=lornwolf&type=1", {cache: "no-cache"})
                     .then(res => res.text())
@@ -314,7 +314,7 @@ export default {
                 return;
             }
 
-            if (this.index == this.words.length - 1) {
+            if (this.index === this.words.length - 1) {
                 this.index = -1;
             }
 
@@ -325,7 +325,7 @@ export default {
             this.html = '';
 
             // 旋转卡片。
-            if (this.status == 0) {
+            if (this.status === 0) {
                 let front = document.getElementById("front");
                 if (front) {
                     front.style.transform = "rotateY(-180deg)";
@@ -426,7 +426,7 @@ export default {
             }
         },
         time2str(time = 0, format = "Y-M-D h:i:s") {
-            if (time == 0) return "";
+            if (time === 0) return "";
 
             let date = new Date(time);
             let Y = date.getFullYear();
