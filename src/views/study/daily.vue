@@ -12,17 +12,6 @@
                     <dl v-html="html"></dl>
                 </div>
             </div>
-            <div class="back" id="back">
-                <div class="info">
-                    <div class="japanese">{{japanese}}</div><br>
-                    <div class="hiragana">{{hiragana}}</div><br>
-                    <div class="comment">{{explanation}}</div>
-                </div>
-                <v-progress-linear v-model="progress"></v-progress-linear>
-                <div class="detail">
-                    <dl v-html="html"></dl>
-                </div>
-            </div>
         </div>
 
         <div align="center" justify="space-around">
@@ -328,25 +317,15 @@ export default {
             if (this.status === 0) {
                 let front = document.getElementById("front");
                 if (front) {
-                    front.style.transform = "rotateY(-180deg)";
-                    front.style["-webkit-transform"] = "rotateY(-180deg)";
-                }
-                let back = document.getElementById("back");
-                if (back) {
-                    back.style.transform = "rotateY(-360deg)";
-                    back.style["-webkit-transform"] = "rotateY(-360deg)";
+                    front.style.transform = "rotateY(-360deg)";
+                    front.style["-webkit-transform"] = "rotateY(-360deg)";
                 }
                 this.status = 1;
             } else {
                 let front = document.getElementById("front");
                 if (front) {
-                    front.style.transform = "rotateY(-360deg)";
-                    front.style["-webkit-transform"] = "rotateY(-360deg)";
-                }
-                let back = document.getElementById("back");
-                if (back) {
-                    back.style.transform = "rotateY(-180deg)";
-                    back.style["-webkit-transform"] = "rotateY(-180deg)";
+                    front.style.transform = "rotateY(0deg)";
+                    front.style["-webkit-transform"] = "rotateY(0deg)";
                 }
                 this.status = 0;
             }
@@ -525,8 +504,7 @@ export default {
     font-size: 18px;
 }
 
-.front,
-.back {
+.front {
     position: absolute;
     transfor: absolute;
     top: 0;
@@ -544,22 +522,9 @@ export default {
     overflow: hidden;
 }
 
-.back {
-    m: rotateY(-180deg);
-    -webkit-transform: rotateY(-180deg);
-}
-
 .back p {
     font-size: 3vh;
     text-align: center;
     line-height: 360px;
-}
-
-.disable-events {
-    pointer-events: none
-}
-
-.v-application--wrap {
-    min-height: calc(100vh - 50px) !important;
 }
 </style>
