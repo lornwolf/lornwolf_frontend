@@ -45,8 +45,11 @@
             </v-btn>
         </div>
         <br>
-        <div class="text-center" style="font-family: 'Yahei Mono';">
+        <div v-if="totalWords > 0" class="text-center" style="font-family: 'Yahei Mono';">
             本次 {{words.length}} 词，共 {{totalWords}} 词。
+        </div>
+        <div v-else class="text-center" style="font-family: 'Yahei Mono';">
+            本次 {{words.length}} 词。
         </div>
         <v-dialog v-model="dialog" max-width="290">
             <v-card>
@@ -139,7 +142,7 @@ export default {
             fetch('https://www.lornwolf.com/dictionary/select_words_for_study?loginId=lornwolf', {cache: "no-cache"})
                 .then(res => res.json())
                 .then(async(json) => {
-                    if (json.length == 0) {
+                    if (json.length === 0) {
                         // 如果没有当日任务，则按复习日期排序取前15件。
                         try {
                             let response = await fetch('https://www.lornwolf.com/dictionary/select_words_random?loginId=lornwolf&random=false', {cache: "no-cache"});
@@ -201,7 +204,7 @@ export default {
             // 获取当前单词。
             let currentWord = this.words[this.index];
             // 判断是不是重新复习。
-            if (step == 0) {
+            if (step === 0) {
                 currentWord.prof = 0;
             }
             // 当前单词复习次数加1（每个单词复习两遍）。
@@ -367,8 +370,12 @@ export default {
                 .then(res => res.json())
                 .then(japanese => {
                     if (japanese.partsOfSpeech) {
-                        this.html += '<span style="line-height: 35px;color: red">' + japanese.partsOfSpeech + "</span><br>";
+                        this.html += '<span style="line-height: 35px;color: red">' + japanese.partsOfSpeech + "</span>&nbsp;&nbsp;";
                     }
+                    if (japanese.accent) {
+                        this.html += '<span style="line-height: 35px;color: grey">[' + japanese.accent + ']</span>';
+                    }
+                    this.html += '<br>';
                     if (japanese.translations && japanese.translations.length > 0) {
                         for (let j = 0; j < japanese.translations.length; j++) {
                             this.html += '<span style="line-height: 35px">' + (j + 1) + '. ' + japanese.translations[j].cn;
