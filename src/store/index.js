@@ -7,16 +7,16 @@ Vue.use(Vuex)
 const modulesFiles = require.context('./modules', false, /\.js$/)
 
 const modules = modulesFiles.keys().reduce((modules, modulePath) => {
-    // set './app.js' => 'app'
-    const moduleName = modulePath.replace(/^\.\/(.*)\.\w+$/, '$1')
-    const value = modulesFiles(modulePath)
-    modules[moduleName] = value.default
-    return modules
+  // set './app.js' => 'app'
+  const moduleName = modulePath.replace(/^\.\/(.*)\.\w+$/, '$1')
+  const value = modulesFiles(modulePath)
+  modules[moduleName] = value.default
+  return modules
 }, {})
 
 const store = new Vuex.Store({
-    modules,
-    getters
+  modules,
+  getters
 })
 
 export default store
