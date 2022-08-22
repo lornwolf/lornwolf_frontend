@@ -1,20 +1,20 @@
 <template>
   <div class="dashboard-container">
-    <div class="dashboard-text">こんにちは。</div>
+    <div class="dashboard-text">
+      こんにちは。
+    </div>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters } from "vuex";
 
 export default {
-  name: 'Dashboard',
+  name: "Dashboard",
   computed: {
-    ...mapGetters([
-      'name'
-    ])
-  }
-}
+    ...mapGetters(["name"]),
+  },
+};
 </script>
 
 <style lang="scss" scoped>
