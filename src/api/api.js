@@ -1,7 +1,7 @@
 const API = {
-    outputReport: {
-        method: 'download',
-        url: '/downloadWeeklyReport'
-    }
+  outputReport: {
+    method: "download",
+    url: "/downloadWeeklyReport",
+  },
 };
-export default API
+export default API;
