@@ -38,7 +38,7 @@ export function selectExamplesByLikeCn(cn) {
 // 中日互译
 export function selectByCn(word) {
   return request({
-    url: "http://localhost/dictionary/select_by_cn?cn=" + word,
+    url: "http://localhost:8000/dictionary/select_by_cn?cn=" + word,
     method: "get",
   });
 }

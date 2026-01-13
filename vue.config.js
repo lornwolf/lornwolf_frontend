@@ -25,7 +25,7 @@ module.exports = {
    * Detail: https://cli.vuejs.org/config/#publicpath
    */
   // 本番发布时的子路径名。
-  publicPath: "/nimbus",
+  publicPath: "",
   outputDir: "dist",
   assetsDir: "static",
   // 关闭ESLint代码校验。

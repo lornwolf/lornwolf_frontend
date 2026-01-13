@@ -7,7 +7,6 @@ import Layout from "@/layout";
 
 /**
  * Note: sub-menu only appear when route children.length >= 1
- * Detail see: https://panjiachen.github.io/vue-element-admin-site/guide/essentials/router-and-nav.html
  *
  * hidden: true                   if set true, item will not show in the sidebar(default is false)
  * alwaysShow: true               if set true, will always show the root menu
@@ -52,35 +51,6 @@ export const constantRoutes = [
         name: "Dashboard",
         component: () => import("@/views/dashboard/index"),
         meta: { title: "Dashboard", icon: "dashboard" },
-      },
-    ],
-  },
-
-  {
-    path: "/nimbus",
-    component: Layout,
-    redirect: "/nimbus/worktime_weekly",
-    name: "Nimbus",
-    meta: { title: "Nimbus", icon: "example" },
-    hidden: true,
-    children: [
-      {
-        path: "worktime_weekly",
-        name: "worktime_weekly",
-        component: () => import("@/views/worktime/weekly"),
-        meta: { title: "工数統計（週）", icon: "table" },
-      },
-      {
-        path: "worktime_monthly",
-        name: "worktime_monthly",
-        component: () => import("@/views/worktime/monthly"),
-        meta: { title: "工数統計（月）", icon: "table" },
-      },
-      {
-        path: "worktime_check",
-        name: "worktime_check",
-        component: () => import("@/views/worktime/check"),
-        meta: { title: "エピックチェック", icon: "table" },
       },
     ],
   },
