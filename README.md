@@ -8,10 +8,10 @@ git clone https://github.com/lornwolf/lornwolf_frontend.git
 cd lornwolf_frontend
 
 # install dependency
-npm install
+yarn install
 
 # develop
-npm run dev
+yarn run dev
 ```
 
 This will automatically open http://localhost:9528
@@ -20,5 +20,5 @@ This will automatically open http://localhost:9528
 
 ```bash
 # build for production environment
-npm run build:prod
+yarn run build:prod
 ```

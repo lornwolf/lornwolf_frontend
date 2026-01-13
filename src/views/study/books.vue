@@ -62,7 +62,7 @@
               width="100%"
             >
               <v-card
-                v-if="words.length > 0"
+                v-if="words.length > 0"分
                 elevation="2"
                 tile
                 class="word"

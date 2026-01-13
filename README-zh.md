@@ -8,10 +8,10 @@ git clone https://.......git
 cd lornwolf_frontend
 
 # 安装依赖
-npm install
+yarn install
 
 # 启动服务
-npm run dev
+yarn run dev
 ```
 
 浏览器访问 [http://localhost:9528](http://localhost:9528)
@@ -20,21 +20,21 @@ npm run dev
 
 ```bash
 # 构建生产环境
-npm run build:prod
+yarn run build:prod
 ```
 
 ## 其它
 
 ```bash
 # 预览发布环境效果
-npm run preview
+yarn run preview
 
 # 预览发布环境效果 + 静态资源分析
-npm run preview -- --report
+yarn run preview -- --report
 
 # 代码格式检查
-npm run lint
+yarn run lint
 
 # 代码格式检查并自动修复
-npm run lint -- --fix
+yarn run lint -- --fix
 ```

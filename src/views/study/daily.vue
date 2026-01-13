@@ -226,14 +226,14 @@ export default {
       this.count = 0;
       this.random = false;
       // 获取要复习的单词。
-      fetch("https://www.lornwolf.com/dictionary/select_words_for_study?loginId=lornwolf", { cache: "no-cache" })
+      fetch("http://localhost:8000/dictionary/select_words_for_study?loginId=lornwolf", { cache: "no-cache" })
         .then((res) => res.json())
         .then(async (json) => {
           if (json.length === 0) {
             // 如果没有当日任务，则按复习日期排序取前15件。
             try {
               let response = await fetch(
-                "https://www.lornwolf.com/dictionary/select_words_random?loginId=lornwolf&random=false",
+                "http://localhost:8000/dictionary/select_words_random?loginId=lornwolf&random=false",
                 { cache: "no-cache" }
               );
               return response.json();
@@ -281,7 +281,7 @@ export default {
         })
         .catch((err) => console.warn(err));
 
-      fetch("https://www.lornwolf.com/dictionary/count_words_for_study?loginId=lornwolf", { cache: "no-cache" })
+      fetch("http://localhost:8000/dictionary/count_words_for_study?loginId=lornwolf", { cache: "no-cache" })
         .then((res) => res.text())
         .then((text) => {
           if (text && !isNaN(text)) {
@@ -357,7 +357,7 @@ export default {
               nextResiveDate: this.time2str(baseDate, "Y-M-D"),
             };
             // 将下次复习时间更新至数据库。
-            fetch("https://www.lornwolf.com/dictionary/update_word?word=" + encodeURI(JSON.stringify(obj)), {
+            fetch("http://localhost:8000/dictionary/update_word?word=" + encodeURI(JSON.stringify(obj)), {
               cache: "no-cache",
             })
               .then((res) => res.text())
@@ -370,7 +370,7 @@ export default {
           }
         }
         // 将最终复习时间更新至数据库。
-        fetch("https://www.lornwolf.com/dictionary/update_last_revise_date?id=" + currentWord.id + "&type=1", {
+        fetch("http://localhost:8000/dictionary/update_last_revise_date?id=" + currentWord.id + "&type=1", {
           cache: "no-cache",
         })
           .then((res) => res.text())
@@ -388,7 +388,7 @@ export default {
       // 判断是否完成了一组任务。
       if (this.count === this.words.length * 2) {
         // 将复习记录保存至数据库。
-        fetch("https://www.lornwolf.com/dictionary/insert_revise_history?loginId=lornwolf&type=1", {
+        fetch("http://localhost:8000/dictionary/insert_revise_history?loginId=lornwolf&type=1", {
           cache: "no-cache",
         })
           .then((res) => res.text())
@@ -463,7 +463,7 @@ export default {
     },
     getDetail() {
       this.html = "";
-      fetch("https://www.lornwolf.com/dictionary/select_japanese_by_id?id=" + this.japaneseId + "&detail=true")
+      fetch("http://localhost:8000/dictionary/select_japanese_by_id?id=" + this.japaneseId + "&detail=true")
         .then((res) => res.json())
         .then((japanese) => {
           if (japanese.partsOfSpeech) {
@@ -528,7 +528,7 @@ export default {
       this.count = 0;
       this.random = false;
       // 获取要复习的单词。
-      fetch("https://www.lornwolf.com/dictionary/select_words_random?loginId=lornwolf&random=true", {
+      fetch("http://localhost:8000/dictionary/select_words_random?loginId=lornwolf&random=true", {
         cache: "no-cache",
       })
         .then((res) => res.json())
