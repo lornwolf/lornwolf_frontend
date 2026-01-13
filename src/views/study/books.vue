@@ -5,11 +5,6 @@
       @mouseup="cancelMove()"
       @mousemove="moveWord($event)"
     >
-      <!--
-        <v-card-title class="indigo white--text headline">
-            我的生詞本
-        </v-card-title>
-        -->
       <v-divider />
       <v-row
         class="pa-4"
@@ -56,13 +51,13 @@
             </div>
             <v-card
               v-else
-              :key="selected.id"
+              :key="selected"
               elevation="2"
               tile
               width="100%"
             >
               <v-card
-                v-if="words.length > 0"分
+                v-if="words.length > 0"
                 elevation="2"
                 tile
                 class="word"
@@ -412,6 +407,13 @@ export default {
       }
 
       return id;
+    },
+  },
+
+  watch: {
+    active() {
+      // 切换生词本时，重置分页为第1页。
+      this.page = 1;
     },
   },
 
