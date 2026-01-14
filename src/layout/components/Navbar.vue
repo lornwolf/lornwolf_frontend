@@ -20,10 +20,8 @@
           >
           <i class="el-icon-caret-bottom" />
         </div>
-        <el-dropdown-menu
-          slot="dropdown"
-          class="user-dropdown"
-        >
+        <template #dropdown>
+          <el-dropdown-menu class="user-dropdown">
           <router-link to="/">
             <el-dropdown-item> Home </el-dropdown-item>
           </router-link>
@@ -34,34 +32,34 @@
             <span style="display: block">Log Out</span>
           </el-dropdown-item>
         </el-dropdown-menu>
+        </template>
       </el-dropdown>
     </div>
   </div>
 </template>
 
-<script>
-import { mapGetters } from "vuex";
-import Breadcrumb from "@/components/Breadcrumb";
-import Hamburger from "@/components/Hamburger";
+<script setup>
+import { computed } from 'vue'
+import { useStore } from 'vuex'
+import { useRoute, useRouter } from 'vue-router'
+import Breadcrumb from "@/components/Breadcrumb"
+import Hamburger from "@/components/Hamburger"
 
-export default {
-  components: {
-    Breadcrumb,
-    Hamburger,
-  },
-  computed: {
-    ...mapGetters(["sidebar", "avatar"]),
-  },
-  methods: {
-    toggleSideBar() {
-      this.$store.dispatch("app/toggleSideBar");
-    },
-    async logout() {
-      await this.$store.dispatch("user/logout");
-      this.$router.push(`/login?redirect=${this.$route.fullPath}`);
-    },
-  },
-};
+const store = useStore()
+const router = useRouter()
+const route = useRoute()
+
+const sidebar = computed(() => store.getters.sidebar)
+const avatar = computed(() => store.getters.avatar)
+
+const toggleSideBar = () => {
+  store.dispatch("app/toggleSideBar")
+}
+
+const logout = async () => {
+  await store.dispatch("user/logout")
+  router.push(`/login?redirect=${route.fullPath}`)
+}
 </script>
 
 <style lang="scss" scoped>

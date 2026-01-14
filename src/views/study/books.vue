@@ -1,7 +1,8 @@
 <template>
-  <v-app>
+  <v-app style="height: calc(100vh - 50px); overflow: hidden">
     <v-card
       id="bookApp"
+      style="height: calc(100vh - 10px); overflow: hidden"
       @mouseup="cancelMove()"
       @mousemove="moveWord($event)"
     >
@@ -9,13 +10,18 @@
       <v-row
         class="pa-4"
         justify="space-between"
+        style="height: 100%"
       >
-        <v-col cols="3">
+        <v-col
+          cols="3"
+          style="height: 100%; overflow-y: auto;"
+        >
           <v-treeview
-            :active.sync="active"
+            v-model:activated="active"
             :items="items"
             :load-children="fetchBooks"
-            :open.sync="open"
+            v-model:opened="open"
+            item-value="id"
             activatable
             color="warning"
             open-on-click
@@ -40,12 +46,15 @@
 
         <v-divider vertical />
 
-        <v-col class="d-flex text-center">
+        <v-col
+          class="d-flex text-center"
+          style="height: 100%; overflow: hidden"
+        >
           <v-scroll-y-transition mode="out-in">
             <div
               v-if="!selected"
               class="title grey--text text--lighten-1 font-weight-light"
-              style="align-self: center"
+              style="align-self: center; margin: auto;"
             >
               Select a Book
             </div>
@@ -55,7 +64,9 @@
               elevation="2"
               tile
               width="100%"
+              style="display: flex; flex-direction: column; height: 100%"
             >
+              <div style="flex: 0 1 auto; overflow-y: auto; overflow-x: hidden">
               <v-card
                 v-if="words.length > 0"
                 elevation="2"
@@ -63,8 +74,9 @@
                 class="word"
                 style="background-color: lightsteelblue"
               >
-                <table>
-                  <tr>
+                <table style="width: 100%">
+                  <tbody>
+                    <tr>
                     <td
                       class="text-left"
                       width="30px"
@@ -86,7 +98,11 @@
                     <td class="text-left">
                       翻译
                     </td>
+                    <td
+                      width="120px"
+                    />
                   </tr>
+                  </tbody>
                 </table>
               </v-card>
               <v-card
@@ -98,7 +114,8 @@
                 class="word"
               >
                 <table style="width: 100%">
-                  <tr>
+                  <tbody>
+                    <tr>
                     <td
                       class="text-left list"
                       width="30px"
@@ -124,37 +141,40 @@
                     <td class="text-left list">
                       {{ item.comment }}
                     </td>
-                    <td width="100px">
+                    <td width="120px" class="text-right" style="text-align: right;">
                       <v-btn
-                        icon
+                        icon="mdi-pencil"
                         color="cyan"
+                        size="x-small"
                         @click="editWordComment(item)"
                       >
-                        <v-icon dark>
-                          mdi-pencil
-                        </v-icon>
                       </v-btn>
                       <v-btn
-                        icon
+                        icon="mdi-delete"
                         color="red"
+                        size="x-small"
+                        class="ml-2"
                         @click="
                           deleteWordId = item.id;
                           deleteWord = item.japanese.japanese;
                           deleteConfirmDialog = true;
                         "
                       >
-                        <v-icon dark>
-                          mdi-delete
-                        </v-icon>
                       </v-btn>
                     </td>
                   </tr>
+                  </tbody>
                 </table>
               </v-card>
+              </div>
               <div
                 v-if="words.length > 0"
                 class="pagination-container"
-                style="margin-bottom: 30px"
+              </div>
+              <div
+                v-if="words.length > 0"
+                class="pagination-container"
+                style="margin-bottom: 5px; display: flex; justify-content: flex-end; padding-right: 20px"
               >
                 <v-pagination
                   v-model="page"
@@ -164,7 +184,8 @@
                   :next-icon="nextIcon"
                   :prev-icon="prevIcon"
                   :page="page"
-                  :total-visible="totalVisible"
+                  :total-visible="7"
+                  density="compact"
                 />
               </div>
             </v-card>
@@ -190,14 +211,14 @@
               <v-col cols="12">
                 <v-text-field
                   label="单词"
-                  :value="wordForEdit"
+                  :model-value="wordForEdit"
                   readonly
                 />
               </v-col>
               <v-col cols="12">
                 <v-text-field
                   label="假名"
-                  :value="kanaForEdit"
+                  :model-value="kanaForEdit"
                   readonly
                 />
               </v-col>
@@ -384,6 +405,7 @@ export default {
     items() {
       return [
         {
+          id: 'root',
           name: "Word Books",
           children: this.books,
         },
@@ -392,9 +414,11 @@ export default {
     selected() {
       if (!this.active.length) return undefined;
 
-      const id = this.active[0];
+      const val = this.active[0];
+      const id = (typeof val === 'object' && val !== null) ? val.id : val;
 
-      if (id) {
+      // Verify id is a valid book ID (number) and not 'root' or a Symbol
+      if (id && typeof id !== 'symbol' && id !== 'root') {
         this.selectedBookId = id;
         this.words = [];
         fetch(process.env.VUE_APP_PYTHON_API + "/select_words_in_book?book_id=" + id + "&page=" + this.page)
@@ -411,10 +435,14 @@ export default {
   },
 
   watch: {
-    active() {
+    active(val) {
+      console.log('Books active watcher:', val)
       // 切换生词本时，重置分页为第1页。
       this.page = 1;
     },
+    open(val) {
+      console.log('Books open watcher:', val)
+    }
   },
 
   methods: {

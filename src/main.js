@@ -1,32 +1,37 @@
-import Vue from "vue";
+import { createApp } from 'vue'
+import App from './App.vue'
+import router from './router'
+import store from './store'
 
 import "normalize.css/normalize.css";
 
-import ElementUI from "element-ui";
-import "element-ui/lib/theme-chalk/index.css";
-import locale from "element-ui/lib/locale/lang/ja";
+import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
+// import locale from 'element-plus/es/locale/lang/ja' 
+import locale from 'element-plus/dist/locale/ja.min.js' // Try dist min file
 
-import Vuetify from "vuetify";
-import "vuetify/dist/vuetify.min.css";
+import { createVuetify } from 'vuetify'
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
+import 'vuetify/styles'
+import '@mdi/font/css/materialdesignicons.css'
 
 import "@/styles/index.scss";
 
-import App from "./App";
-import store from "./store";
-import router from "./router";
-
-import "@/icons";
+import installIcons from "@/icons";
 import "@/permission";
 
-Vue.use(ElementUI, { locale });
-Vue.use(Vuetify);
+const vuetify = createVuetify({
+  components,
+  directives,
+})
 
-Vue.config.productionTip = false;
+const app = createApp(App)
 
-new Vue({
-  el: "#app",
-  router,
-  store,
-  render: (h) => h(App),
-  vuetify: new Vuetify(),
-});
+installIcons(app)
+app.use(store)
+app.use(router)
+app.use(ElementPlus, { locale })
+app.use(vuetify)
+
+app.mount('#app')

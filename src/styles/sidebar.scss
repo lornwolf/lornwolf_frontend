@@ -70,11 +70,11 @@
       }
     }
 
-    .is-active > .el-submenu__title {
+    .is-active>.el-submenu__title {
       color: $subMenuActiveText !important;
     }
 
-    & .nest-menu .el-submenu > .el-submenu__title,
+    & .nest-menu .el-submenu>.el-submenu__title,
     & .el-submenu .el-menu-item {
       min-width: $sideBarWidth !important;
       background-color: $subMenuBg !important;
@@ -94,46 +94,53 @@
       margin-left: 54px;
     }
 
-    .submenu-title-noDropdown {
+    // Universal centering for all collapsed menu items
+    .submenu-title-noDropdown,
+    .el-submenu__title,
+    .el-menu-item {
       padding: 0 !important;
       position: relative;
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
 
-      .el-tooltip {
+      // Force ANY child (tooltip, div, span) to center content
+      &>div,
+      &>span,
+      .el-tooltip,
+      .el-tooltip__trigger {
+        margin: 0 !important;
         padding: 0 !important;
-
-        .svg-icon {
-          margin-left: 20px;
-        }
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100%;
+        height: 100%;
       }
-    }
 
-    .el-submenu {
-      overflow: hidden;
+      // Force icon to have no margin
+      .svg-icon {
+        margin-left: 0px !important;
+        margin-right: 0px !important;
+      }
 
-      & > .el-submenu__title {
-        padding: 0 !important;
-
-        .svg-icon {
-          margin-left: 20px;
-        }
-
-        .el-submenu__icon-arrow {
-          display: none;
-        }
+      .el-submenu__icon-arrow {
+        display: none;
       }
     }
 
     .el-menu--collapse {
       .el-submenu {
-        & > .el-submenu__title {
-          & > span {
-            height: 0;
-            width: 0;
-            overflow: hidden;
-            visibility: hidden;
-            display: inline-block;
+        &>.el-submenu__title {
+          &>span {
+            display: none !important;
           }
         }
+      }
+
+      // Hide custom sidebar title
+      .sidebar-title {
+        display: none !important;
       }
     }
   }
@@ -163,6 +170,7 @@
   }
 
   .withoutAnimation {
+
     .main-container,
     .sidebar-container {
       transition: none;
@@ -172,13 +180,13 @@
 
 // when menu collapsed
 .el-menu--vertical {
-  & > .el-menu {
+  &>.el-menu {
     .svg-icon {
       margin-right: 16px;
     }
   }
 
-  .nest-menu .el-submenu > .el-submenu__title,
+  .nest-menu .el-submenu>.el-submenu__title,
   .el-menu-item {
     &:hover {
       // you can use $subMenuHover
@@ -187,7 +195,7 @@
   }
 
   // the scroll bar appears when the subMenu is too long
-  > .el-menu--popup {
+  >.el-menu--popup {
     max-height: 100vh;
     overflow-y: auto;
 

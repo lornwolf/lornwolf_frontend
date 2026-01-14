@@ -6,15 +6,12 @@
   </div>
 </template>
 
-<script>
-import { mapGetters } from "vuex";
+<script setup>
+import { computed } from 'vue'
+import { useStore } from 'vuex'
 
-export default {
-  name: "Dashboard",
-  computed: {
-    ...mapGetters(["name"]),
-  },
-};
+const store = useStore()
+const name = computed(() => store.getters.name)
 </script>
 
 <style lang="scss" scoped>

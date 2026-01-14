@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app style="height: calc(100vh - 50px); overflow: hidden">
     <div
       id="card"
       class="card"

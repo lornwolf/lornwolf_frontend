@@ -1,40 +1,31 @@
 <template>
   <div v-if="!item.hidden">
-    <template
+    <el-menu-item
       v-if="
         hasOneShowingChild(item.children, item) &&
-          (!onlyOneChild.children || onlyOneChild.noShowingChildren) &&
-          !item.alwaysShow
+        (!onlyOneChild.children || onlyOneChild.noShowingChildren) &&
+        !item.alwaysShow &&
+        onlyOneChild.meta
       "
+      :index="resolvePath(onlyOneChild.path)"
+      :class="{ 'submenu-title-noDropdown': !isNest }"
+      @click="handleLink(onlyOneChild.path)"
     >
-      <router-link
-        v-if="onlyOneChild.meta"
-        :to="resolvePath(onlyOneChild.path)"
-        exact
-      >
-        <el-menu-item
-          :index="resolvePath(onlyOneChild.path)"
-          :class="{ 'submenu-title-noDropdown': !isNest }"
-        >
-          <item
-            :icon="onlyOneChild.meta.icon || (item.meta && item.meta.icon)"
-            :title="onlyOneChild.meta.title"
-          />
-        </el-menu-item>
-      </router-link>
-    </template>
+      <item
+        :icon="onlyOneChild.meta?.icon || item.meta?.icon || ''"
+        :title="onlyOneChild.meta?.title || ''"
+      />
+    </el-menu-item>
 
-    <el-submenu
-      v-else
+    <el-sub-menu
+      v-else-if="item.children && item.children.length > 0"
       ref="subMenu"
       :index="resolvePath(item.path)"
-      popper-append-to-body
     >
-      <template slot="title">
+      <template #title>
         <item
-          v-if="item.meta"
-          :icon="item.meta && item.meta.icon"
-          :title="item.meta.title"
+          :icon="item.meta?.icon || ''"
+          :title="item.meta?.title || ''"
         />
       </template>
       <sidebar-item
@@ -45,74 +36,92 @@
         :base-path="resolvePath(child.path)"
         class="nest-menu"
       />
-    </el-submenu>
+    </el-sub-menu>
   </div>
 </template>
 
-<script>
-import path from "path";
-import { isExternal } from "@/utils/validate";
-import Item from "./Item";
-import AppLink from "./Link";
-import FixiOSBug from "./FixiOSBug";
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { isExternal } from "@/utils/validate"
+import Item from "./Item"
+import { useFixiOSBug } from "./useFixiOSBug"
 
-export default {
-  name: "SidebarItem",
-  components: { Item, AppLink },
-  mixins: [FixiOSBug],
-  props: {
-    // route object
-    item: {
-      type: Object,
-      required: true,
-    },
-    isNest: {
-      type: Boolean,
-      default: false,
-    },
-    basePath: {
-      type: String,
-      default: "",
-    },
+const props = defineProps({
+  item: {
+    type: Object,
+    required: true
   },
-  data() {
-    this.onlyOneChild = null;
-    return {};
+  isNest: {
+    type: Boolean,
+    default: false
   },
-  methods: {
-    hasOneShowingChild(children = [], parent) {
-      const showingChildren = children.filter((item) => {
-        if (item.hidden) {
-          return false;
-        } else {
-          // Temp set(will be used if only has one showing child)
-          this.onlyOneChild = item;
-          return true;
-        }
-      });
+  basePath: {
+    type: String,
+    default: ""
+  }
+})
 
-      // When there is only one child router, the child router is displayed by default
-      if (showingChildren.length === 1) {
-        return true;
-      }
+const router = useRouter()
+const subMenu = ref(null)
+useFixiOSBug(subMenu) // Apply iOS bug fix
 
-      // Show parent if there are no child router to display
-      if (showingChildren.length === 0) {
-        this.onlyOneChild = { ...parent, path: "", noShowingChildren: true };
-        return true;
-      }
+import { onMounted } from 'vue'
+onMounted(() => {
+   // console.log('SidebarItem mounted:', props.item.path)
+})
 
-      return false;
-    },
-    resolvePath(routePath) {
-      if (isExternal(routePath)) {
-        return routePath;
-      }
-      if (isExternal(this.basePath)) {
-        return this.basePath;
-      }
-      return path.resolve(this.basePath, routePath);
-    },
-  },
-};
+const onlyOneChild = ref(null)
+
+const hasOneShowingChild = (children = [], parent) => {
+  const showingChildren = children.filter((item) => {
+    if (item.hidden) {
+      return false
+    } else {
+      // Temp set(will be used if only has one showing child)
+      onlyOneChild.value = item
+      return true
+    }
+  })
+
+  // When there is only one child router, the child router is displayed by default
+  if (showingChildren.length === 1) {
+    return true
+  }
+
+  // Show parent if there are no child router to display
+  if (showingChildren.length === 0) {
+    onlyOneChild.value = { ...parent, path: "", noShowingChildren: true }
+    return true
+  }
+
+  return false
+}
+
+const resolvePath = (routePath) => {
+  if (isExternal(routePath)) {
+    return routePath
+  }
+  if (isExternal(props.basePath)) {
+    return props.basePath
+  }
+  
+  if (routePath === "") {
+    return props.basePath
+  }
+
+  // Simple path join implementation to replace 'path' module
+  const base = props.basePath.endsWith('/') ? props.basePath : props.basePath + '/'
+  const segment = routePath.startsWith('/') ? routePath.slice(1) : routePath
+  return (base + segment).replace('//', '/') // Ensure no double slashes
+}
+
+const handleLink = (routePath) => {
+  const resolvedPath = resolvePath(routePath)
+  if (isExternal(resolvedPath)) {
+    window.open(resolvedPath, '_blank')
+  } else {
+    router.push(resolvedPath)
+  }
+}
 </script>
