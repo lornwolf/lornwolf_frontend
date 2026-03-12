@@ -48,6 +48,13 @@
         >
           下一单词
         </v-btn>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <v-btn
+          color="orange darken-1"
+          @click="openEditor()"
+        >
+          编辑
+        </v-btn>
       </div>
     </div>
     <br>
@@ -176,6 +183,149 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog
+      v-model="editDialog"
+      max-width="800"
+      scrollable
+    >
+      <v-card v-if="editWord">
+        <v-card-title style="font-family: 'Yahei Mono'; font-size: 16px">
+          编辑 — {{ editWord.japanese }}
+        </v-card-title>
+        <v-card-text style="max-height: 70vh; overflow-y: auto; font-family: 'Yahei Mono'">
+          <!-- 单語 / 読み / 品詞 -->
+          <v-row dense>
+            <v-col cols="4">
+              <v-text-field
+                v-model="editWord.japanese"
+                label="単語"
+                dense
+                outlined
+                hide-details
+                style="background-color: #ccff99"
+              />
+            </v-col>
+            <v-col cols="4">
+              <v-text-field
+                v-model="editWord.hiragana"
+                label="読み"
+                dense
+                outlined
+                hide-details
+                style="background-color: #ffcccc"
+              />
+            </v-col>
+            <v-col cols="4">
+              <v-text-field
+                v-model="editWord.partsOfSpeech"
+                label="品詞"
+                dense
+                outlined
+                hide-details
+                style="background-color: #99ccff"
+              />
+            </v-col>
+          </v-row>
+          <!-- 简明释意 -->
+          <v-textarea
+            v-model="editWord.explanationCn"
+            label="简明释意"
+            dense
+            outlined
+            rows="3"
+            hide-details
+            style="background-color: #eaeaea"
+          />
+          <!-- 详细翻译 -->
+          <div
+            v-for="(tr, ti) in editWord.translations"
+            :key="ti"
+            style="border: 0px; padding: 4px 0 0 0; margin-bottom: 0"
+          >
+            <div style="display: flex; align-items: stretch; gap: 4px">
+              <v-textarea
+                v-model="tr.jp"
+                label="日本語訳"
+                dense
+                outlined
+                rows="3"
+                hide-details
+                style="background-color: #ffffcc; flex: 1"
+              />
+              <v-textarea
+                v-model="tr.cn"
+                label="中国語訳"
+                dense
+                outlined
+                rows="3"
+                hide-details
+                style="background-color: #ffffcc; flex: 1"
+              />
+              <div style="display: flex; flex-direction: column; justify-content: space-between; align-self: stretch">
+                <v-btn icon color="red" style="width:28px;height:28px" @click="confirmDelete('translation', ti)">
+                  <v-icon style="font-size:18px">mdi-delete</v-icon>
+                </v-btn>
+                <v-btn icon color="green" style="width:28px;height:28px" @click="addTranslation()">
+                  <v-icon style="font-size:18px">mdi-plus</v-icon>
+                </v-btn>
+                <v-btn icon color="blue" style="width:28px;height:28px" @click="addExample(ti)">
+                  <v-icon style="font-size:18px">mdi-comment-plus-outline</v-icon>
+                </v-btn>
+              </div>
+            </div>
+            <!-- 例句 -->
+            <div
+              v-for="(ex, ei) in tr.examples"
+              :key="ei"
+              style="display: flex; align-items: center; gap: 8px; margin-top: 4px"
+            >
+              <v-text-field
+                v-model="ex.jp"
+                label="例句(JP)"
+                dense
+                outlined
+                hide-details
+                style="color: green; flex: 1"
+              />
+              <v-text-field
+                v-model="ex.cn"
+                label="例句(CN)"
+                dense
+                outlined
+                hide-details
+                style="color: blue; flex: 1"
+              />
+              <v-btn icon color="red" style="width:28px;height:28px" @click="confirmDelete('example', ti, ei)">
+                <v-icon style="font-size:18px">mdi-minus</v-icon>
+              </v-btn>
+            </div>
+          </div>
+        </v-card-text>
+        <v-dialog v-model="deleteConfirmDialog" max-width="260">
+          <v-card>
+            <v-card-title style="font-family: 'Yahei Mono'; font-size: 15px">确认删除</v-card-title>
+            <v-card-text style="font-family: 'Yahei Mono'; font-size: 14px">确定要删除吗？</v-card-text>
+            <v-card-actions>
+              <v-spacer />
+              <v-btn color="grey" text @click="deleteConfirmDialog = false">取消</v-btn>
+              <v-btn color="red" text @click="executeDelete()">删除</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn color="grey" text @click="editDialog = false">
+            取消
+          </v-btn>
+          <v-btn color="green darken-1" text @click="saveEditor()">
+            保存
+          </v-btn>
+          <v-btn color="red" text @click="confirmDelete('japanese')">
+            削除
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-app>
 </template>
 <script>
@@ -204,6 +354,10 @@ export default {
     // 对话框显示flag。
     dialog: false,
     confirmDialog: false,
+    editDialog: false,
+    editWord: null,
+    deleteConfirmDialog: false,
+    deleteTarget: null,
     // 今日任务数
     totalWords: 0,
   }),
@@ -563,6 +717,135 @@ export default {
                 clearInterval(interval);
               }
             }, 250);
+          }
+        })
+        .catch((err) => console.warn(err));
+    },
+    openEditor() {
+      if (!this.japaneseId) return;
+      fetch("http://localhost:8000/dictionary/select_japanese_by_id?id=" + this.japaneseId + "&detail=true")
+        .then((res) => res.json())
+        .then((japanese) => {
+          this.editWord = {
+            id: japanese.id,
+            japanese: japanese.japanese,
+            hiragana: japanese.hiragana,
+            partsOfSpeech: japanese.partsOfSpeech || "",
+            explanationCn: japanese.explanation ? japanese.explanation.cn : "",
+            explanationId: japanese.explanation ? japanese.explanation.id : null,
+            translations: (japanese.translations || []).map((tr) => ({
+              id: tr.id,
+              jp: tr.jp || "",
+              cn: tr.cn || "",
+              examples: (tr.examples || []).map((ex) => ({
+                id: ex.id,
+                jp: ex.jp || "",
+                cn: ex.cn || "",
+              })),
+            })),
+          };
+          this.editDialog = true;
+        })
+        .catch((err) => console.warn(err));
+    },
+    confirmDelete(type, ti, ei) {
+      this.deleteTarget = { type, ti, ei };
+      this.deleteConfirmDialog = true;
+    },
+    executeDelete() {
+      this.deleteConfirmDialog = false;
+      const { type, ti, ei } = this.deleteTarget;
+      if (type === 'japanese') {
+        fetch("http://localhost:8000/dictionary/delete_japanese?id=" + this.editWord.id, { cache: "no-cache" })
+          .then((res) => res.text())
+          .then((text) => {
+            if (text && !text.startsWith("ERROR")) {
+              this.editDialog = false;
+            } else {
+              console.warn("削除失败:", text);
+            }
+          })
+          .catch((err) => console.warn(err));
+      } else if (type === 'translation') {
+        this.removeTranslation(ti);
+      } else {
+        this.removeExample(ti, ei);
+      }
+      this.deleteTarget = null;
+    },
+    addTranslation() {
+      this.editWord.translations.push({ id: -1, jp: "", cn: "", examples: [] });
+    },
+    removeTranslation(ti) {
+      const tr = this.editWord.translations[ti];
+      const doRemove = () => { this.editWord.translations.splice(ti, 1); };
+      if (tr.id && tr.id > 0) {
+        fetch("http://localhost:8000/dictionary/delete_translation?id=" + tr.id, { cache: "no-cache" })
+          .then((res) => res.text())
+          .then((text) => {
+            if (text && !text.startsWith("ERROR")) doRemove();
+            else console.warn("删除译义失败:", text);
+          })
+          .catch((err) => console.warn(err));
+      } else {
+        doRemove();
+      }
+    },
+    addExample(ti) {
+      this.editWord.translations[ti].examples.push({ id: -1, jp: "", cn: "" });
+    },
+    removeExample(ti, ei) {
+      const ex = this.editWord.translations[ti].examples[ei];
+      const doRemove = () => { this.editWord.translations[ti].examples.splice(ei, 1); };
+      if (ex.id && ex.id > 0) {
+        fetch("http://localhost:8000/dictionary/delete_example?id=" + ex.id, { cache: "no-cache" })
+          .then((res) => res.text())
+          .then((text) => {
+            if (text && !text.startsWith("ERROR")) doRemove();
+            else console.warn("删除例句失败:", text);
+          })
+          .catch((err) => console.warn(err));
+      } else {
+        doRemove();
+      }
+    },
+    saveEditor() {
+      const payload = {
+        id: this.editWord.id,
+        japanese: this.editWord.japanese,
+        hiragana: this.editWord.hiragana,
+        partsOfSpeech: this.editWord.partsOfSpeech,
+        explanation: {
+          id: this.editWord.explanationId,
+          cn: this.editWord.explanationCn,
+        },
+        translations: this.editWord.translations.map((tr) => ({
+          id: tr.id,
+          jp: tr.jp,
+          cn: tr.cn,
+          japaneseId: this.editWord.id,
+          examples: tr.examples.map((ex) => ({
+            id: ex.id,
+            jp: ex.jp,
+            cn: ex.cn,
+          })),
+        })),
+      };
+      fetch("http://localhost:8000/dictionary/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "jp=" + encodeURIComponent(JSON.stringify(payload)),
+      })
+        .then((res) => res.text())
+        .then((text) => {
+          if (text && text.startsWith("ERROR")) {
+            console.warn("保存失败:", text);
+          } else {
+            this.editDialog = false;
+            // 刷新当前单词显示。
+            this.japanese = this.editWord.japanese;
+            this.hiragana = this.editWord.hiragana;
+            this.getDetail();
           }
         })
         .catch((err) => console.warn(err));
